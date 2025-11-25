@@ -1,0 +1,136 @@
+.entry-list {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.empty-entries {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #999;
+}
+
+.entry-item {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+  transition: box-shadow 0.2s;
+}
+
+.entry-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.entry-type {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.entry-emoji {
+  font-size: 1.2rem;
+}
+
+.entry-type-label {
+  font-weight: 500;
+  color: #007bff;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.entry-date {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.entry-content {
+  margin-bottom: 1rem;
+}
+
+.entry-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.entry-text {
+  color: #555;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.entry-metadata {
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.metadata-item {
+  margin: 0.25rem 0;
+  color: #666;
+}
+
+.metadata-item strong {
+  color: #333;
+  margin-right: 0.5rem;
+}
+
+.entry-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.entry-item:hover .entry-actions {
+  opacity: 1;
+}
+
+.btn-edit-entry {
+  padding: 0.25rem 0.75rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  transition: background-color 0.2s;
+}
+
+.btn-edit-entry:hover {
+  background-color: #0056b3;
+}
+
+.btn-delete-entry {
+  padding: 0.25rem 0.75rem;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  transition: background-color 0.2s;
+}
+
+.btn-delete-entry:hover {
+  background-color: #c82333;
+}
+
+.entry-divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin: 1.5rem 0;
+}

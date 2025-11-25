@@ -35,11 +35,12 @@ one thread of conversation.
 ## 3. User Experience
 
 ### User Flow
-**[Describe the main user journey from start to finish]**
 
-1. User starts by: **Creating a thread of conversation.**
-2. Then: **The user add entries to the thread as they occur.**
-3. Finally: **The user can review the thread of conversation.**
+1. User starts by: **Creating a thread of conversation with a title and optional description.**
+2. Then: **The user selects a thread and adds entries as interactions occur, choosing the appropriate type (Note, Email, Meeting, Conversation, or File).**
+3. Each entry type shows **relevant fields only** (e.g., emails show From/To/Subject/Body).
+4. User can **edit threads or entries** at any time by clicking the edit button.
+5. Finally: **The user reviews the complete conversation thread with all entries displayed chronologically with formatted metadata.**
 
 ---
 
@@ -117,11 +118,49 @@ one thread of conversation.
   id: INTEGER PRIMARY KEY AUTOINCREMENT
   thread_id: INTEGER NOT NULL       // Foreign key to Thread
   entry_type: TEXT NOT NULL         // 'note', 'meeting', 'conversation', 'email', 'file'
-  title: TEXT                       // Entry title/subject
-  content: TEXT                     // Main content/body
+  title: TEXT                       // Entry title/subject (not used for some types)
+  content: TEXT                     // Main content/body (not used for some types)
   entry_date: DATETIME NOT NULL     // When the interaction occurred
   created_at: DATETIME DEFAULT CURRENT_TIMESTAMP
-  metadata: TEXT                    // JSON string for type-specific data (from, to, location, etc.)
+  metadata: TEXT                    // JSON string for type-specific data
+}
+
+Type-Specific Metadata Structures:
+
+Note:
+{
+  content: TEXT                     // Note content
+}
+
+Email:
+{
+  from: TEXT                        // Sender email address
+  to: TEXT                          // Recipient email address(es)
+  subject: TEXT                     // Email subject
+  body: TEXT                        // Email body content
+}
+
+Meeting:
+{
+  location: TEXT                    // Meeting location (physical or virtual)
+  attendees: TEXT                   // Comma-separated list of attendees
+  duration: TEXT                    // Duration (e.g., "1 hour", "30 minutes")
+  notes: TEXT                       // Meeting notes/summary
+}
+
+Conversation:
+{
+  participants: TEXT                // Who was involved in the conversation
+  location: TEXT                    // Where it occurred (in-person, phone, etc.)
+  summary: TEXT                     // Summary of the conversation
+}
+
+File:
+{
+  fileName: TEXT                    // Name of the file
+  fileType: TEXT                    // File type/extension
+  description: TEXT                 // Description of the file
+  filePath: TEXT                    // Path to stored file (future)
 }
 ```
 
@@ -209,22 +248,23 @@ one thread of conversation.
 ## 10. Development Plan
 
 ### Phase 1: Setup & Foundation
-- [ ] **Initialize Electron + React project** - 1-2 hours
-- [ ] **Set up SQLite database with better-sqlite3** - 1-2 hours
-- [ ] **Create database schema and migration** - 1 hour
-- [ ] **Set up basic IPC communication** - 1 hour
-- [ ] **Create basic app layout (navigation + content area)** - 2-3 hours
+- [x] **Initialize Electron + React project** - 1-2 hours
+- [x] **Set up SQLite database with better-sqlite3** - 1-2 hours
+- [x] **Create database schema and migration** - 1 hour
+- [x] **Set up basic IPC communication** - 1 hour
+- [x] **Create basic app layout (navigation + content area)** - 2-3 hours
 
 ### Phase 2: Core Features
-- [ ] **Implement thread list component** - 2-3 hours
-- [ ] **Implement create/edit/delete thread functionality** - 2-3 hours
-- [ ] **Implement entry display component** - 2-3 hours
-- [ ] **Implement create entry form with type selection** - 3-4 hours
-- [ ] **Implement edit/delete entry functionality** - 2 hours
+- [x] **Implement thread list component** - 2-3 hours
+- [x] **Implement create/edit/delete thread functionality** - 2-3 hours
+- [x] **Implement entry display component** - 2-3 hours
+- [x] **Implement create entry form with type selection** - 3-4 hours
+- [x] **Implement edit/delete entry functionality** - 2 hours
+- [x] **Add type-specific metadata fields for each entry type** - 2-3 hours
 - [ ] **Add basic file attachment support** - 2-3 hours
 
 ### Phase 3: Polish & Testing
-- [ ] **Add basic styling and layout improvements** - 2-3 hours
+- [x] **Add basic styling and layout improvements** - 2-3 hours
 - [ ] **Manual testing of all features** - 2 hours
 - [ ] **Bug fixes and refinements** - 2-4 hours
 - [ ] **Package application for distribution** - 1-2 hours
@@ -304,18 +344,19 @@ one thread of conversation.
 
 ### Definition of Success
 **A successful prototype demonstrates:**
-- User can create multiple threads
-- User can add all 5 entry types (Note, Meeting, Conversation, E-Mail, File)
-- Entries display in chronological order in a scrollable ledger view
-- Data persists between application restarts
-- Application runs on at least one platform (macOS, Windows, or Linux)
+- ✅ User can create, edit, and delete multiple threads
+- ✅ User can add all 5 entry types with type-specific fields (Note, Meeting, Conversation, E-Mail, File)
+- ✅ User can edit entries after creation
+- ✅ Entries display in chronological order in a scrollable ledger view with formatted metadata
+- ✅ Data persists between application restarts
+- ✅ Application runs on macOS (tested and working)
 
 ---
 
 ## 16. Open Questions & Decisions Needed
 
 1. **Entry Form Design**: Should all entry types use the same form with conditional fields, or separate forms for each type?
-   - Recommendation: Single form with dynamic fields based on type selection (simpler implementation)
+   - Decision: Single form with dynamic fields based on type selection - each type shows only relevant fields
 
 2. **File Storage**: Where should attached files be stored?
    - Recommendation: Create `attachments/` folder in app data directory, organize by thread ID

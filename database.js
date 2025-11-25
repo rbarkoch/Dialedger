@@ -1,0 +1,159 @@
+const Database = require('better-sqlite3');
+const path = require('path');
+const { app } = require('electron');
+const fs = require('fs');
+
+let db;
+
+function initialize() {
+  // Store database in user data directory
+  const userDataPath = app.getPath('userData');
+  const dbPath = path.join(userDataPath, 'dialedger.db');
+  
+  // Ensure directory exists
+  if (!fs.existsSync(userDataPath)) {
+    fs.mkdirSync(userDataPath, { recursive: true });
+  }
+  
+  db = new Database(dbPath);
+  db.pragma('journal_mode = WAL');
+  
+  // Create tables
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS threads (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS entries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      thread_id INTEGER NOT NULL,
+      entry_type TEXT NOT NULL CHECK(entry_type IN ('note', 'meeting', 'conversation', 'email', 'file')),
+      title TEXT,
+      content TEXT,
+      entry_date DATETIME NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      metadata TEXT,
+      FOREIGN KEY (thread_id) REFERENCES threads(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS attachments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      entry_id INTEGER NOT NULL,
+      file_name TEXT NOT NULL,
+      file_path TEXT NOT NULL,
+      file_size INTEGER,
+      mime_type TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (entry_id) REFERENCES entries(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_entries_thread_id ON entries(thread_id);
+    CREATE INDEX IF NOT EXISTS idx_entries_entry_date ON entries(entry_date);
+    CREATE INDEX IF NOT EXISTS idx_attachments_entry_id ON attachments(entry_id);
+  `);
+  
+  console.log('Database initialized at:', dbPath);
+}
+
+// Thread operations
+function getAllThreads() {
+  const stmt = db.prepare('SELECT * FROM threads ORDER BY updated_at DESC');
+  return stmt.all();
+}
+
+function createThread(data) {
+  const stmt = db.prepare('INSERT INTO threads (title, description) VALUES (?, ?)');
+  const info = stmt.run(data.title, data.description || null);
+  return { id: info.lastInsertRowid, ...data };
+}
+
+function updateThread(data) {
+  const stmt = db.prepare('UPDATE threads SET title = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+  stmt.run(data.title, data.description, data.id);
+  return data;
+}
+
+function deleteThread(id) {
+  const stmt = db.prepare('DELETE FROM threads WHERE id = ?');
+  stmt.run(id);
+  return { success: true };
+}
+
+// Entry operations
+function getEntriesByThread(threadId) {
+  const stmt = db.prepare('SELECT * FROM entries WHERE thread_id = ? ORDER BY entry_date ASC');
+  return stmt.all(threadId);
+}
+
+function createEntry(data) {
+  const stmt = db.prepare(`
+    INSERT INTO entries (thread_id, entry_type, title, content, entry_date, metadata)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+  const metadataString = data.metadata ? JSON.stringify(data.metadata) : null;
+  const info = stmt.run(
+    data.threadId,
+    data.entryType,
+    data.title || null,
+    data.content || null,
+    data.entryDate,
+    metadataString
+  );
+  
+  // Update thread's updated_at timestamp
+  const updateStmt = db.prepare('UPDATE threads SET updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+  updateStmt.run(data.threadId);
+  
+  return { id: info.lastInsertRowid, ...data, metadata: metadataString };
+}
+
+function updateEntry(data) {
+  const stmt = db.prepare(`
+    UPDATE entries 
+    SET title = ?, content = ?, entry_date = ?, metadata = ?
+    WHERE id = ?
+  `);
+  const metadataString = data.metadata ? JSON.stringify(data.metadata) : null;
+  stmt.run(data.title, data.content, data.entryDate, metadataString, data.id);
+  
+  // Update thread's updated_at timestamp
+  const entry = db.prepare('SELECT thread_id FROM entries WHERE id = ?').get(data.id);
+  if (entry) {
+    const updateStmt = db.prepare('UPDATE threads SET updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+    updateStmt.run(entry.thread_id);
+  }
+  
+  return { ...data, metadata: metadataString };
+}
+
+function deleteEntry(id) {
+  // Get thread_id before deleting
+  const entry = db.prepare('SELECT thread_id FROM entries WHERE id = ?').get(id);
+  
+  const stmt = db.prepare('DELETE FROM entries WHERE id = ?');
+  stmt.run(id);
+  
+  // Update thread's updated_at timestamp
+  if (entry) {
+    const updateStmt = db.prepare('UPDATE threads SET updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+    updateStmt.run(entry.thread_id);
+  }
+  
+  return { success: true };
+}
+
+module.exports = {
+  initialize,
+  getAllThreads,
+  createThread,
+  updateThread,
+  deleteThread,
+  getEntriesByThread,
+  createEntry,
+  updateEntry,
+  deleteEntry,
+};
