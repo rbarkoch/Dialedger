@@ -25,6 +25,7 @@
     "electron-builder": "^24.9.1",
     "electron-rebuild": "^3.2.9",
     "vite": "^5.0.8",
+    "vite-plugin-svgr": "^4.5.0",
     "wait-on": "^7.2.0"
   },
   "dependencies": {

@@ -39,8 +39,10 @@
   gap: 0.6rem;
 }
 
-.entry-emoji {
-  font-size: 1.3rem;
+.entry-icon {
+  display: flex;
+  align-items: center;
+  color: #3498db;
 }
 
 .entry-type-label {

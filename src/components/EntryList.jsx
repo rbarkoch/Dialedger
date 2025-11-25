@@ -1,14 +1,7 @@
 import React from 'react';
 import { format } from 'date-fns';
+import Icon from './icons/Icon';
 import './EntryList.css';
-
-const ENTRY_TYPE_EMOJI = {
-  note: '📝',
-  meeting: '👥',
-  conversation: '💬',
-  email: '📧',
-  file: '📎',
-};
 
 function EntryList({ entries, onDeleteEntry, onEditEntry }) {
   if (entries.length === 0) {
@@ -119,7 +112,9 @@ function EntryList({ entries, onDeleteEntry, onEditEntry }) {
         <div key={entry.id} className="entry-item">
           <div className="entry-header">
             <div className="entry-type">
-              <span className="entry-emoji">{ENTRY_TYPE_EMOJI[entry.entry_type]}</span>
+              <span className="entry-icon">
+                <Icon name={entry.entry_type} size={20} />
+              </span>
               <span className="entry-type-label">{getEntryTypeLabel(entry.entry_type)}</span>
             </div>
             <div className="entry-date">{formatDate(entry.entry_date)}</div>

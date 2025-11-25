@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Icon from './icons/Icon';
 import './ThreadList.css';
 
 function ThreadList({ threads, selectedThread, onSelectThread, onCreateThread, onDeleteThread, onUpdateThread }) {
@@ -52,7 +53,11 @@ function ThreadList({ threads, selectedThread, onSelectThread, onCreateThread, o
             setNewThreadDescription('');
           }}
         >
-          {showNewThreadForm && !editingThread ? '✕' : '+'}
+          {showNewThreadForm && !editingThread ? (
+            <Icon name="close" size={18} />
+          ) : (
+            <Icon name="plus" size={18} />
+          )}
         </button>
       </div>
 
@@ -104,7 +109,7 @@ function ThreadList({ threads, selectedThread, onSelectThread, onCreateThread, o
                   onClick={(e) => handleEditThread(e, thread)}
                   title="Edit thread"
                 >
-                  ✏️
+                  <Icon name="edit" size={16} />
                 </button>
                 <button
                   className="btn-delete"
@@ -116,7 +121,7 @@ function ThreadList({ threads, selectedThread, onSelectThread, onCreateThread, o
                   }}
                   title="Delete thread"
                 >
-                  🗑️
+                  <Icon name="delete" size={16} />
                 </button>
               </div>
             </div>
