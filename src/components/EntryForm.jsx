@@ -25,9 +25,20 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
   
+  // Convert date to local datetime string for datetime-local input
+  const getLocalDateTime = (dateString) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+  
   const [entryDate, setEntryDate] = useState(
     editEntry?.entry_date 
-      ? new Date(editEntry.entry_date).toISOString().slice(0, 16)
+      ? getLocalDateTime(editEntry.entry_date)
       : getCurrentDateTime()
   );
   
