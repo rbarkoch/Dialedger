@@ -54,13 +54,25 @@ function EntryList({ entries, onDeleteEntry, onEditEntry }) {
         return (
           <div className="entry-content">
             <h3 className="entry-title">{metadata.subject}</h3>
-            {(metadata.from || metadata.to) && (
+            {(metadata.from || metadata.to || metadata.cc || metadata.bcc) && (
               <div className="entry-metadata">
                 {metadata.from && <div className="metadata-item"><strong>From:</strong> {metadata.from}</div>}
                 {metadata.to && <div className="metadata-item"><strong>To:</strong> {metadata.to}</div>}
+                {metadata.cc && <div className="metadata-item"><strong>CC:</strong> {metadata.cc}</div>}
+                {metadata.bcc && <div className="metadata-item"><strong>BCC:</strong> {metadata.bcc}</div>}
               </div>
             )}
             {metadata.body && <p className="entry-text">{metadata.body}</p>}
+            {metadata.attachments && (
+              <div className="entry-metadata">
+                <div className="metadata-item">
+                  <strong>Attachments:</strong>{' '}
+                  {typeof metadata.attachments === 'string' 
+                    ? metadata.attachments 
+                    : metadata.attachments.map(a => a.filename).join(', ')}
+                </div>
+              </div>
+            )}
           </div>
         );
 

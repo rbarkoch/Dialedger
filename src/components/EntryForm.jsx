@@ -36,8 +36,11 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
   // Email fields
   const [emailFrom, setEmailFrom] = useState(metadata.from || '');
   const [emailTo, setEmailTo] = useState(metadata.to || '');
+  const [emailCc, setEmailCc] = useState(metadata.cc || '');
+  const [emailBcc, setEmailBcc] = useState(metadata.bcc || '');
   const [emailSubject, setEmailSubject] = useState(metadata.subject || '');
   const [emailBody, setEmailBody] = useState(metadata.body || '');
+  const [emailAttachments, setEmailAttachments] = useState(metadata.attachments || '');
   
   // Meeting fields
   const [meetingLocation, setMeetingLocation] = useState(metadata.location || '');
@@ -80,8 +83,11 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
         newMetadata = {
           from: emailFrom.trim(),
           to: emailTo.trim(),
+          cc: emailCc.trim(),
+          bcc: emailBcc.trim(),
           subject: emailSubject.trim(),
           body: emailBody.trim(),
+          attachments: emailAttachments.trim(),
         };
         title = emailSubject.trim();
         break;
@@ -152,8 +158,11 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
     setNoteContent('');
     setEmailFrom('');
     setEmailTo('');
+    setEmailCc('');
+    setEmailBcc('');
     setEmailSubject('');
     setEmailBody('');
+    setEmailAttachments('');
     setMeetingLocation('');
     setMeetingAttendees('');
     setMeetingDuration('');
@@ -204,6 +213,24 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
               />
             </div>
             <div className="form-group">
+              <label>CC</label>
+              <input
+                type="text"
+                value={emailCc}
+                onChange={(e) => setEmailCc(e.target.value)}
+                placeholder="cc@example.com"
+              />
+            </div>
+            <div className="form-group">
+              <label>BCC</label>
+              <input
+                type="text"
+                value={emailBcc}
+                onChange={(e) => setEmailBcc(e.target.value)}
+                placeholder="bcc@example.com"
+              />
+            </div>
+            <div className="form-group">
               <label>Subject *</label>
               <input
                 type="text"
@@ -220,6 +247,15 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
                 onChange={(e) => setEmailBody(e.target.value)}
                 placeholder="Email content"
                 rows="6"
+              />
+            </div>
+            <div className="form-group">
+              <label>Attachments</label>
+              <input
+                type="text"
+                value={emailAttachments}
+                onChange={(e) => setEmailAttachments(e.target.value)}
+                placeholder="file1.pdf, file2.docx (comma-separated)"
               />
             </div>
           </>

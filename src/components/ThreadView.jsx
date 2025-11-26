@@ -115,8 +115,11 @@ function ThreadView({ thread, onThreadUpdated }) {
           metadata: {
             from: parsed.from,
             to: parsed.to,
+            cc: parsed.cc,
+            bcc: parsed.bcc,
             subject: parsed.subject,
             body: parsed.body,
+            attachments: parsed.attachments,
           },
         });
       } catch (error) {

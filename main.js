@@ -92,12 +92,30 @@ ipcMain.handle('eml:parse', async (event, filePath) => {
     const emlContent = fs.readFileSync(filePath, 'utf8');
     const parsed = await simpleParser(emlContent);
     
+    // Extract attachment filenames
+    const attachments = [];
+    if (parsed.attachments && parsed.attachments.length > 0) {
+      parsed.attachments.forEach(attachment => {
+        if (attachment.filename) {
+          attachments.push({
+            filename: attachment.filename,
+            contentType: attachment.contentType || '',
+            size: attachment.size || 0,
+          });
+        }
+      });
+    }
+    
     return {
       from: parsed.from?.text || '',
       to: parsed.to?.text || '',
+      cc: parsed.cc?.text || '',
+      bcc: parsed.bcc?.text || '',
       subject: parsed.subject || '',
       body: parsed.text || parsed.html || '',
       date: parsed.date || new Date(),
+      messageId: parsed.messageId || '',
+      attachments: attachments,
     };
   } catch (error) {
     console.error('Error parsing EML file:', error);
