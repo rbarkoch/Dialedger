@@ -36,11 +36,12 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
   
-  const [entryDate, setEntryDate] = useState(
-    editEntry?.entry_date 
-      ? getLocalDateTime(editEntry.entry_date)
-      : getCurrentDateTime()
-  );
+  const initialEntryDate = editEntry?.entry_date 
+    ? getLocalDateTime(editEntry.entry_date)
+    : getCurrentDateTime();
+  
+  const [entryDate, setEntryDate] = useState(initialEntryDate);
+  const [originalEntryDate] = useState(editEntry?.entry_date); // Store original ISO string
   
   // Parse metadata if in edit mode
   const parseMetadata = (metadataString) => {
@@ -172,11 +173,28 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
         break;
     }
 
+    // Determine the entry date to use
+    let finalEntryDate;
+    if (isEditMode) {
+      // Check if user changed the date/time from the original
+      const currentLocalDateTime = getLocalDateTime(originalEntryDate);
+      if (entryDate === currentLocalDateTime) {
+        // User didn't change it, preserve original with full precision
+        finalEntryDate = originalEntryDate;
+      } else {
+        // User manually changed it, use their selection
+        finalEntryDate = new Date(entryDate).toISOString();
+      }
+    } else {
+      // New entry: use current time with full precision
+      finalEntryDate = new Date().toISOString();
+    }
+    
     const entryData = {
       entryType,
       title,
       content: null,
-      entryDate: new Date(entryDate).toISOString(),
+      entryDate: finalEntryDate,
       metadata: newMetadata,
       selectedFile: selectedFile, // Pass selected file if exists
     };

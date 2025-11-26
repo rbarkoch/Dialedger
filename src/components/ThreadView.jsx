@@ -35,12 +35,8 @@ function ThreadView({ thread, onThreadUpdated }) {
   const handleCreateEntry = async (entryData) => {
     try {
       if (entryData.id) {
-        // Update existing entry - preserve original entry_date
-        const originalEntry = entries.find(e => e.id === entryData.id);
-        await window.electronAPI.updateEntry({
-          ...entryData,
-          entryDate: originalEntry.entry_date,
-        });
+        // Update existing entry - entryDate is already handled in EntryForm
+        await window.electronAPI.updateEntry(entryData);
       } else {
         // Create new entry
         const entry = await window.electronAPI.createEntry({
