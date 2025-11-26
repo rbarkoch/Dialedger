@@ -9,6 +9,9 @@
     "postinstall": "electron-rebuild",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "vite build && electron-builder",
+    "electron:build:win": "vite build && electron-builder --win --x64",
+    "electron:build:win:portable": "vite build && electron-builder --win portable --x64",
+    "electron:build:all": "vite build && electron-builder --mac --win --linux",
     "preview": "vite preview"
   },
   "keywords": [
@@ -55,7 +58,22 @@
       "category": "public.app-category.productivity"
     },
     "win": {
-      "target": "nsis"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
     },
     "linux": {
       "target": "AppImage"
