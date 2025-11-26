@@ -15,4 +15,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   createEntry: (data) => ipcRenderer.invoke('entries:create', data),
   updateEntry: (data) => ipcRenderer.invoke('entries:update', data),
   deleteEntry: (data) => ipcRenderer.invoke('entries:delete', data),
+  
+  // EML parsing
+  parseEmlFile: (filePath) => ipcRenderer.invoke('eml:parse', filePath),
 });

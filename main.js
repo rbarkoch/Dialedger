@@ -1,5 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const fs = require('fs');
+const { simpleParser } = require('mailparser');
 const db = require('./database');
 
 let mainWindow;
@@ -82,4 +84,23 @@ ipcMain.handle('entries:update', async (event, data) => {
 
 ipcMain.handle('entries:delete', async (event, data) => {
   return db.deleteEntry(data.id);
+});
+
+// IPC Handler for parsing .eml files
+ipcMain.handle('eml:parse', async (event, filePath) => {
+  try {
+    const emlContent = fs.readFileSync(filePath, 'utf8');
+    const parsed = await simpleParser(emlContent);
+    
+    return {
+      from: parsed.from?.text || '',
+      to: parsed.to?.text || '',
+      subject: parsed.subject || '',
+      body: parsed.text || parsed.html || '',
+      date: parsed.date || new Date(),
+    };
+  } catch (error) {
+    console.error('Error parsing EML file:', error);
+    throw error;
+  }
 });
