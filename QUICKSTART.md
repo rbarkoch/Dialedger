@@ -49,13 +49,15 @@ DialedgerProto/
 
 - **Electron 28** - Desktop application framework
 - **React 18** - UI library
-- **Vite 5** - Fast build tool and dev server
+- **Vite 5** - Fast build tool and dev server with SVG support (vite-plugin-svgr)
 - **better-sqlite3 11** - SQLite database (local storage)
 - **date-fns 3** - Date formatting
+- **@dnd-kit** - Modern drag-and-drop library
 
 ## Features Implemented
 
 ✅ Create, edit, and manage multiple conversation threads  
+✅ Drag-and-drop thread reordering with persistent order  
 ✅ Add 5 types of entries with type-specific fields:
   - **Note**: Simple content field
   - **Email**: From, To, Subject, Body
@@ -63,10 +65,12 @@ DialedgerProto/
   - **Conversation**: Participants, Location/Medium, Summary
   - **File**: File Name, Type, Description
 ✅ Edit entries after creation with pre-populated fields  
+✅ Compact entry display with inline edit/delete buttons  
 ✅ View entries in chronological order with formatted metadata  
 ✅ Delete threads and entries with confirmation  
 ✅ Persistent local storage with SQLite  
-✅ Clean, neutral UI with light theme  
+✅ Modern Material Design SVG icons with color theming  
+✅ Clean, minimalistic UI with light theme  
 ✅ Auto-generated titles based on entry type and content  
 
 ## Next Steps
@@ -79,8 +83,9 @@ DialedgerProto/
    - Create a meeting entry with attendees
    - Log a conversation with participants
 4. Edit threads or entries by clicking the edit button (✏️)
-5. View how entries display with formatted metadata
-6. When ready, use `npm run electron:build` to create a distributable package
+5. Reorder threads by dragging the `⋮⋮` handle that appears on hover
+6. View how entries display with formatted metadata in a compact layout
+7. When ready, use `npm run electron:build` to create a distributable package
 
 ## Database Location
 

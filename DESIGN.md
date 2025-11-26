@@ -107,6 +107,7 @@ one thread of conversation.
   id: INTEGER PRIMARY KEY AUTOINCREMENT
   title: TEXT NOT NULL              // Name of the conversation thread
   description: TEXT                 // Optional description
+  display_order: INTEGER DEFAULT 0  // Order for display (drag-and-drop)
   created_at: DATETIME DEFAULT CURRENT_TIMESTAMP
   updated_at: DATETIME DEFAULT CURRENT_TIMESTAMP
 }
@@ -189,9 +190,10 @@ File:
 
 | Channel | Direction | Purpose | Data | Response |
 |---------|-----------|---------|------|----------|
-| **threads:getAll** | Renderer → Main | Get all threads | None | Array of Thread objects |
+| **threads:getAll** | Renderer → Main | Get all threads | None | Array of Thread objects (ordered by display_order) |
 | **threads:create** | Renderer → Main | Create new thread | { title, description } | Thread object |
 | **threads:update** | Renderer → Main | Update thread | { id, title, description } | Thread object |
+| **threads:updateOrder** | Renderer → Main | Update thread order | { threadOrders: [{id, order}] } | Success boolean |
 | **threads:delete** | Renderer → Main | Delete thread | { id } | Success boolean |
 | **entries:getByThread** | Renderer → Main | Get entries for thread | { threadId } | Array of Entry objects |
 | **entries:create** | Renderer → Main | Create new entry | { threadId, entryType, title, content, entryDate, metadata } | Entry object |
@@ -261,6 +263,9 @@ File:
 - [x] **Implement create entry form with type selection** - 3-4 hours
 - [x] **Implement edit/delete entry functionality** - 2 hours
 - [x] **Add type-specific metadata fields for each entry type** - 2-3 hours
+- [x] **Add drag-and-drop thread reordering with persistence** - 2-3 hours
+- [x] **Replace emoji icons with SVG icons** - 2 hours
+- [x] **Modernize UI with minimalistic design** - 2 hours
 - [ ] **Add basic file attachment support** - 2-3 hours
 
 ### Phase 3: Polish & Testing
@@ -345,9 +350,11 @@ File:
 ### Definition of Success
 **A successful prototype demonstrates:**
 - ✅ User can create, edit, and delete multiple threads
+- ✅ User can reorder threads via drag-and-drop with persistent order
 - ✅ User can add all 5 entry types with type-specific fields (Note, Meeting, Conversation, E-Mail, File)
 - ✅ User can edit entries after creation
-- ✅ Entries display in chronological order in a scrollable ledger view with formatted metadata
+- ✅ Entries display in chronological order in a compact scrollable ledger view with formatted metadata
+- ✅ Modern UI with SVG icons and minimalistic design
 - ✅ Data persists between application restarts
 - ✅ Application runs on macOS (tested and working)
 
@@ -365,4 +372,4 @@ File:
    - Recommendation: Date picker with time input, default to current date/time
 
 4. **Thread Sorting**: How should threads be sorted in the navigation?
-   - Recommendation: Most recently updated first (by updated_at timestamp)
+   - ✅ Decision: User-defined order via drag-and-drop, persisted in display_order column
