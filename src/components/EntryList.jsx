@@ -54,10 +54,12 @@ function EntryList({ entries, onDeleteEntry, onEditEntry }) {
         return (
           <div className="entry-content">
             <h3 className="entry-title">{metadata.subject}</h3>
-            <div className="entry-metadata">
-              {metadata.from && <div className="metadata-item"><strong>From:</strong> {metadata.from}</div>}
-              {metadata.to && <div className="metadata-item"><strong>To:</strong> {metadata.to}</div>}
-            </div>
+            {(metadata.from || metadata.to) && (
+              <div className="entry-metadata">
+                {metadata.from && <div className="metadata-item"><strong>From:</strong> {metadata.from}</div>}
+                {metadata.to && <div className="metadata-item"><strong>To:</strong> {metadata.to}</div>}
+              </div>
+            )}
             {metadata.body && <p className="entry-text">{metadata.body}</p>}
           </div>
         );
@@ -66,10 +68,12 @@ function EntryList({ entries, onDeleteEntry, onEditEntry }) {
         return (
           <div className="entry-content">
             <h3 className="entry-title">Meeting at {metadata.location}</h3>
-            <div className="entry-metadata">
-              {metadata.attendees && <div className="metadata-item"><strong>Attendees:</strong> {metadata.attendees}</div>}
-              {metadata.duration && <div className="metadata-item"><strong>Duration:</strong> {metadata.duration}</div>}
-            </div>
+            {(metadata.attendees || metadata.duration) && (
+              <div className="entry-metadata">
+                {metadata.attendees && <div className="metadata-item"><strong>Attendees:</strong> {metadata.attendees}</div>}
+                {metadata.duration && <div className="metadata-item"><strong>Duration:</strong> {metadata.duration}</div>}
+              </div>
+            )}
             {metadata.notes && <p className="entry-text">{metadata.notes}</p>}
           </div>
         );
@@ -78,9 +82,11 @@ function EntryList({ entries, onDeleteEntry, onEditEntry }) {
         return (
           <div className="entry-content">
             <h3 className="entry-title">Conversation with {metadata.participants}</h3>
-            <div className="entry-metadata">
-              {metadata.location && <div className="metadata-item"><strong>Medium:</strong> {metadata.location}</div>}
-            </div>
+            {metadata.location && (
+              <div className="entry-metadata">
+                <div className="metadata-item"><strong>Medium:</strong> {metadata.location}</div>
+              </div>
+            )}
             {metadata.summary && <p className="entry-text">{metadata.summary}</p>}
           </div>
         );
@@ -89,9 +95,11 @@ function EntryList({ entries, onDeleteEntry, onEditEntry }) {
         return (
           <div className="entry-content">
             <h3 className="entry-title">{metadata.fileName}</h3>
-            <div className="entry-metadata">
-              {metadata.fileType && <div className="metadata-item"><strong>Type:</strong> {metadata.fileType}</div>}
-            </div>
+            {metadata.fileType && (
+              <div className="entry-metadata">
+                <div className="metadata-item"><strong>Type:</strong> {metadata.fileType}</div>
+              </div>
+            )}
             {metadata.description && <p className="entry-text">{metadata.description}</p>}
           </div>
         );
@@ -117,33 +125,32 @@ function EntryList({ entries, onDeleteEntry, onEditEntry }) {
               </span>
               <span className="entry-type-label">{getEntryTypeLabel(entry.entry_type)}</span>
             </div>
-            <div className="entry-date">{formatDate(entry.entry_date)}</div>
+            <div className="entry-header-right">
+              <div className="entry-date">{formatDate(entry.entry_date)}</div>
+              <div className="entry-actions">
+                <button
+                  className="btn-icon-edit"
+                  onClick={() => onEditEntry(entry)}
+                  title="Edit entry"
+                >
+                  <Icon name="edit" size={16} />
+                </button>
+                <button
+                  className="btn-icon-delete"
+                  onClick={() => {
+                    if (confirm('Delete this entry?')) {
+                      onDeleteEntry(entry.id);
+                    }
+                  }}
+                  title="Delete entry"
+                >
+                  <Icon name="delete" size={16} />
+                </button>
+              </div>
+            </div>
           </div>
           
           {renderEntryContent(entry)}
-
-          <div className="entry-actions">
-            <button
-              className="btn-edit-entry"
-              onClick={() => onEditEntry(entry)}
-              title="Edit entry"
-            >
-              Edit
-            </button>
-            <button
-              className="btn-delete-entry"
-              onClick={() => {
-                if (confirm('Delete this entry?')) {
-                  onDeleteEntry(entry.id);
-                }
-              }}
-              title="Delete entry"
-            >
-              Delete
-            </button>
-          </div>
-
-          {index < entries.length - 1 && <div className="entry-divider" />}
         </div>
       ))}
     </div>
