@@ -130,7 +130,7 @@ function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId }) {
                 <ReactMarkdown>{metadata.body}</ReactMarkdown>
               </div>
             )}
-            {metadata.attachments && (
+            {metadata.attachments && metadata.attachments.length > 0 && (
               <div className="entry-metadata">
                 <div className="metadata-item">
                   <strong>Attachments:</strong>{' '}
