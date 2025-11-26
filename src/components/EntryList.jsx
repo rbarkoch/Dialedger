@@ -64,7 +64,7 @@ function FileAttachmentDisplay({ entryId }) {
   );
 }
 
-function EntryList({ entries, onDeleteEntry, onEditEntry }) {
+function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId }) {
   if (entries.length === 0) {
     return (
       <div className="empty-entries">
@@ -204,7 +204,7 @@ function EntryList({ entries, onDeleteEntry, onEditEntry }) {
   return (
     <div className="entry-list">
       {entries.map((entry, index) => (
-        <div key={entry.id} className="entry-item">
+        <div key={entry.id} className={`entry-item ${entry.id === newEntryId ? 'entry-new' : ''}`}>
           <div className="entry-header">
             <div className="entry-type">
               <span className="entry-icon">

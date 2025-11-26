@@ -9,6 +9,7 @@ function ThreadView({ thread, onThreadUpdated }) {
   const [editingEntry, setEditingEntry] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [newEntryId, setNewEntryId] = useState(null);
   const contentRef = useRef(null);
 
   useEffect(() => {
@@ -45,6 +46,7 @@ function ThreadView({ thread, onThreadUpdated }) {
       if (entryData.id) {
         // Update existing entry - entryDate is already handled in EntryForm
         await window.electronAPI.updateEntry(entryData);
+        setNewEntryId(null); // Clear animation for edits
       } else {
         // Create new entry
         const entry = await window.electronAPI.createEntry({
@@ -56,6 +58,9 @@ function ThreadView({ thread, onThreadUpdated }) {
           metadata: entryData.metadata,
         });
         
+        // Mark this as the new entry for animation
+        setNewEntryId(entry.id);
+        
         // If there's a selected file attachment, save it before reloading
         if (entryData.selectedFile && entryData.entryType === 'file') {
           console.log('Saving attachment for entry ID:', entry.id);
@@ -66,6 +71,9 @@ function ThreadView({ thread, onThreadUpdated }) {
           });
           console.log('Attachment saved successfully:', savedAttachment);
         }
+        
+        // Clear the animation after 500ms (animation duration)
+        setTimeout(() => setNewEntryId(null), 500);
       }
       // Reload entries after attachment is saved
       await loadEntries();
@@ -241,6 +249,7 @@ function ThreadView({ thread, onThreadUpdated }) {
             entries={entries}
             onDeleteEntry={handleDeleteEntry}
             onEditEntry={handleEditEntry}
+            newEntryId={newEntryId}
           />
         )}
       </div>
