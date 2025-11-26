@@ -400,15 +400,6 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
               />
             </div>
             <div className="form-group">
-              <label>File Type</label>
-              <input
-                type="text"
-                value={fileType}
-                onChange={(e) => setFileType(e.target.value)}
-                placeholder="PDF, Word, Excel, etc."
-              />
-            </div>
-            <div className="form-group">
               <label>Description</label>
               <textarea
                 value={fileDescription}

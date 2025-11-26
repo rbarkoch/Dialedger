@@ -167,11 +167,6 @@ function EntryList({ entries, onDeleteEntry, onEditEntry }) {
         return (
           <div className="entry-content">
             <h3 className="entry-title">{metadata.fileName}</h3>
-            {metadata.fileType && (
-              <div className="entry-metadata">
-                <div className="metadata-item"><strong>Type:</strong> {metadata.fileType}</div>
-              </div>
-            )}
             {metadata.description && <p className="entry-text">{metadata.description}</p>}
             <FileAttachmentDisplay key={`attachment-${entry.id}`} entryId={entry.id} />
           </div>
