@@ -72,8 +72,8 @@ function ThreadView({ thread, onThreadUpdated }) {
           console.log('Attachment saved successfully:', savedAttachment);
         }
         
-        // Clear the animation after 500ms (animation duration)
-        setTimeout(() => setNewEntryId(null), 500);
+        // Clear the animation after 1s (animation duration)
+        setTimeout(() => setNewEntryId(null), 1000);
       }
       // Reload entries after attachment is saved
       await loadEntries();

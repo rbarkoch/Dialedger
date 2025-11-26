@@ -204,7 +204,7 @@ function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId }) {
   return (
     <div className="entry-list">
       {entries.map((entry, index) => (
-        <div key={entry.id} className={`entry-item ${entry.id === newEntryId ? 'entry-new' : ''}`}>
+        <div key={entry.id} className={`entry-item ${entry.id === newEntryId ? 'entry-new' : ''}`} data-entry-id={entry.id}>
           <div className="entry-header">
             <div className="entry-type">
               <span className="entry-icon">

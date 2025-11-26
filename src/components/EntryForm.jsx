@@ -186,8 +186,15 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
         finalEntryDate = new Date(entryDate).toISOString();
       }
     } else {
-      // New entry: use current time with full precision
-      finalEntryDate = new Date().toISOString();
+      // New entry: check if user changed the default time
+      const defaultDateTime = getCurrentDateTime();
+      if (entryDate === defaultDateTime) {
+        // User kept the default, use current time with full precision
+        finalEntryDate = new Date().toISOString();
+      } else {
+        // User manually set a different time, use their selection
+        finalEntryDate = new Date(entryDate).toISOString();
+      }
     }
     
     const entryData = {
