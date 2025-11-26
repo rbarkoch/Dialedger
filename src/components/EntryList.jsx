@@ -65,6 +65,20 @@ function FileAttachmentDisplay({ entryId }) {
 }
 
 function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId }) {
+  const [expandedEntries, setExpandedEntries] = useState(new Set());
+
+  const toggleExpanded = (entryId) => {
+    setExpandedEntries(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(entryId)) {
+        newSet.delete(entryId);
+      } else {
+        newSet.add(entryId);
+      }
+      return newSet;
+    });
+  };
+
   if (entries.length === 0) {
     return (
       <div className="empty-entries">
@@ -102,14 +116,21 @@ function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId }) {
 
   const renderEntryContent = (entry) => {
     const metadata = parseMetadata(entry.metadata);
+    const isExpanded = expandedEntries.has(entry.id);
 
     switch (entry.entry_type) {
       case 'note':
+        const hasMoreNote = metadata.content && metadata.content.length > 300;
         return (
           <div className="entry-content">
-            <div className="entry-text markdown-content">
+            <div className={`entry-text markdown-content ${isExpanded ? 'expanded' : 'collapsed'} ${hasMoreNote && !isExpanded ? 'has-more' : ''}`}>
               <ReactMarkdown>{metadata.content}</ReactMarkdown>
             </div>
+            {hasMoreNote && (
+              <button className="btn-expand" onClick={() => toggleExpanded(entry.id)}>
+                {isExpanded ? 'Show less' : 'Show more'}
+              </button>
+            )}
           </div>
         );
 
@@ -126,9 +147,23 @@ function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId }) {
               </div>
             )}
             {metadata.body && (
-              <div className="entry-text markdown-content">
-                <ReactMarkdown>{metadata.body}</ReactMarkdown>
-              </div>
+              <>
+                {(() => {
+                  const hasMoreBody = metadata.body.length > 300;
+                  return (
+                    <>
+                      <div className={`entry-text markdown-content ${isExpanded ? 'expanded' : 'collapsed'} ${hasMoreBody && !isExpanded ? 'has-more' : ''}`}>
+                        <ReactMarkdown>{metadata.body}</ReactMarkdown>
+                      </div>
+                      {hasMoreBody && (
+                        <button className="btn-expand" onClick={() => toggleExpanded(entry.id)}>
+                          {isExpanded ? 'Show less' : 'Show more'}
+                        </button>
+                      )}
+                    </>
+                  );
+                })()}
+              </>
             )}
             {metadata.attachments && metadata.attachments.length > 0 && (
               <div className="entry-metadata">
@@ -154,9 +189,23 @@ function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId }) {
               </div>
             )}
             {metadata.notes && (
-              <div className="entry-text markdown-content">
-                <ReactMarkdown>{metadata.notes}</ReactMarkdown>
-              </div>
+              <>
+                {(() => {
+                  const hasMoreNotes = metadata.notes.length > 300;
+                  return (
+                    <>
+                      <div className={`entry-text markdown-content ${isExpanded ? 'expanded' : 'collapsed'} ${hasMoreNotes && !isExpanded ? 'has-more' : ''}`}>
+                        <ReactMarkdown>{metadata.notes}</ReactMarkdown>
+                      </div>
+                      {hasMoreNotes && (
+                        <button className="btn-expand" onClick={() => toggleExpanded(entry.id)}>
+                          {isExpanded ? 'Show less' : 'Show more'}
+                        </button>
+                      )}
+                    </>
+                  );
+                })()}
+              </>
             )}
           </div>
         );
@@ -171,9 +220,23 @@ function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId }) {
               </div>
             )}
             {metadata.summary && (
-              <div className="entry-text markdown-content">
-                <ReactMarkdown>{metadata.summary}</ReactMarkdown>
-              </div>
+              <>
+                {(() => {
+                  const hasMoreSummary = metadata.summary.length > 300;
+                  return (
+                    <>
+                      <div className={`entry-text markdown-content ${isExpanded ? 'expanded' : 'collapsed'} ${hasMoreSummary && !isExpanded ? 'has-more' : ''}`}>
+                        <ReactMarkdown>{metadata.summary}</ReactMarkdown>
+                      </div>
+                      {hasMoreSummary && (
+                        <button className="btn-expand" onClick={() => toggleExpanded(entry.id)}>
+                          {isExpanded ? 'Show less' : 'Show more'}
+                        </button>
+                      )}
+                    </>
+                  );
+                })()}
+              </>
             )}
           </div>
         );
@@ -183,9 +246,23 @@ function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId }) {
           <div className="entry-content">
             <h3 className="entry-title">{metadata.fileName}</h3>
             {metadata.description && (
-              <div className="entry-text markdown-content">
-                <ReactMarkdown>{metadata.description}</ReactMarkdown>
-              </div>
+              <>
+                {(() => {
+                  const hasMoreDesc = metadata.description.length > 300;
+                  return (
+                    <>
+                      <div className={`entry-text markdown-content ${isExpanded ? 'expanded' : 'collapsed'} ${hasMoreDesc && !isExpanded ? 'has-more' : ''}`}>
+                        <ReactMarkdown>{metadata.description}</ReactMarkdown>
+                      </div>
+                      {hasMoreDesc && (
+                        <button className="btn-expand" onClick={() => toggleExpanded(entry.id)}>
+                          {isExpanded ? 'Show less' : 'Show more'}
+                        </button>
+                      )}
+                    </>
+                  );
+                })()}
+              </>
             )}
             <FileAttachmentDisplay key={`attachment-${entry.id}`} entryId={entry.id} />
           </div>
