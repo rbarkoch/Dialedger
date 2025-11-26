@@ -13,10 +13,22 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
   const isEditMode = editEntry !== null;
   
   const [entryType, setEntryType] = useState(editEntry?.entry_type || 'note');
+  
+  // Get current date/time in local timezone for datetime-local input
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+  
   const [entryDate, setEntryDate] = useState(
     editEntry?.entry_date 
       ? new Date(editEntry.entry_date).toISOString().slice(0, 16)
-      : new Date().toISOString().slice(0, 16)
+      : getCurrentDateTime()
   );
   
   // Parse metadata if in edit mode
@@ -57,6 +69,22 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
   const [fileName, setFileName] = useState(metadata.fileName || '');
   const [fileType, setFileType] = useState(metadata.fileType || '');
   const [fileDescription, setFileDescription] = useState(metadata.description || '');
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const handleBrowseFile = async () => {
+    try {
+      const file = await window.electronAPI.selectFile();
+      console.log('File selected:', file);
+      if (file) {
+        setSelectedFile(file);
+        setFileName(file.name);
+        setFileType(file.type || 'application/octet-stream');
+        console.log('File state updated:', { fileName: file.name, fileType: file.type });
+      }
+    } catch (error) {
+      console.error('Failed to select file:', error);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -121,7 +149,7 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
         
       case 'file':
         if (!fileName.trim()) {
-          alert('Please enter file name');
+          alert('Please enter file name or select a file');
           return;
         }
         newMetadata = {
@@ -139,12 +167,14 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
       content: null,
       entryDate: new Date(entryDate).toISOString(),
       metadata: newMetadata,
+      selectedFile: selectedFile, // Pass selected file if exists
     };
     
     if (isEditMode) {
       entryData.id = editEntry.id;
     }
 
+    console.log('Submitting entry data:', entryData);
     onSubmit(entryData);
 
     // Reset form only if not in edit mode
@@ -173,6 +203,7 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
     setFileName('');
     setFileType('');
     setFileDescription('');
+    setSelectedFile(null);
   };
 
   const renderTypeSpecificFields = () => {
@@ -341,6 +372,23 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
       case 'file':
         return (
           <>
+            <div className="form-group">
+              <label>Select File</label>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={handleBrowseFile}
+                  className="btn-browse-file"
+                >
+                  Browse...
+                </button>
+                {selectedFile && (
+                  <span style={{ fontSize: '0.9rem', color: '#2c3e50' }}>
+                    {selectedFile.name}
+                  </span>
+                )}
+              </div>
+            </div>
             <div className="form-group">
               <label>File Name *</label>
               <input

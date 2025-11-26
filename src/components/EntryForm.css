@@ -92,3 +92,21 @@
   background-color: #2980b9;
   box-shadow: 0 3px 6px rgba(52, 152, 219, 0.3);
 }
+
+.btn-browse-file {
+  padding: 0.75rem 1.5rem;
+  background-color: #f8fafb;
+  color: #2c3e50;
+  border: 1px solid #e1e8ed;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-browse-file:hover {
+  background-color: #ebf5fb;
+  border-color: #3498db;
+  color: #3498db;
+}

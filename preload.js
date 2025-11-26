@@ -18,4 +18,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // EML parsing
   parseEmlFile: (filePath) => ipcRenderer.invoke('eml:parse', filePath),
+  
+  // File selection
+  selectFile: () => ipcRenderer.invoke('file:select'),
+  
+  // Attachments
+  saveAttachment: (data) => ipcRenderer.invoke('attachments:save', data),
+  getAttachmentsByEntry: (data) => ipcRenderer.invoke('attachments:getByEntry', data),
+  downloadAttachment: (data) => ipcRenderer.invoke('attachments:download', data),
+  deleteAttachment: (data) => ipcRenderer.invoke('attachments:delete', data),
 });

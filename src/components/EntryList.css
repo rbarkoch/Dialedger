@@ -143,8 +143,49 @@
 }
 
 .btn-icon-delete:hover {
-  background-color: #fdeaea;
+  background-color: #fee;
   color: #e74c3c;
+}
+
+.attachment-list {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.btn-attachment {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: #f8fafb;
+  border: 1px solid #e1e8ed;
+  border-radius: 6px;
+  color: #3498db;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.btn-attachment:hover {
+  background-color: #ebf5fb;
+  border-color: #3498db;
+  box-shadow: 0 2px 4px rgba(52, 152, 219, 0.1);
+}
+
+.attachment-size {
+  margin-left: auto;
+  color: #7f8c8d;
+  font-size: 0.85rem;
+}
+
+.attachment-loading {
+  margin-top: 1rem;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  font-style: italic;
 }
 
 .entry-divider {

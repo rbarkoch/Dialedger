@@ -162,9 +162,11 @@ function updateEntry(data) {
 }
 
 function deleteEntry(id) {
-  // Get thread_id before deleting
+  // Get thread_id and attachments before deleting
   const entry = db.prepare('SELECT thread_id FROM entries WHERE id = ?').get(id);
+  const attachments = db.prepare('SELECT * FROM attachments WHERE entry_id = ?').all(id);
   
+  // Delete the entry (attachments will be cascade deleted due to FOREIGN KEY constraint)
   const stmt = db.prepare('DELETE FROM entries WHERE id = ?');
   stmt.run(id);
   
@@ -174,6 +176,38 @@ function deleteEntry(id) {
     updateStmt.run(entry.thread_id);
   }
   
+  return { success: true, deletedAttachments: attachments };
+}
+
+// Attachment operations
+function createAttachment(data) {
+  const stmt = db.prepare(`
+    INSERT INTO attachments (entry_id, file_name, file_path, file_size, mime_type)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+  const info = stmt.run(
+    data.entryId,
+    data.fileName,
+    data.filePath,
+    data.fileSize || null,
+    data.mimeType || null
+  );
+  return { id: info.lastInsertRowid, ...data };
+}
+
+function getAttachmentsByEntry(entryId) {
+  const stmt = db.prepare('SELECT * FROM attachments WHERE entry_id = ?');
+  return stmt.all(entryId);
+}
+
+function getAttachmentById(id) {
+  const stmt = db.prepare('SELECT * FROM attachments WHERE id = ?');
+  return stmt.get(id);
+}
+
+function deleteAttachment(id) {
+  const stmt = db.prepare('DELETE FROM attachments WHERE id = ?');
+  stmt.run(id);
   return { success: true };
 }
 
@@ -188,4 +222,8 @@ module.exports = {
   createEntry,
   updateEntry,
   deleteEntry,
+  createAttachment,
+  getAttachmentsByEntry,
+  getAttachmentById,
+  deleteAttachment,
 };

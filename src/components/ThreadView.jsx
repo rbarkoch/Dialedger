@@ -39,17 +39,34 @@ function ThreadView({ thread, onThreadUpdated }) {
         await window.electronAPI.updateEntry(entryData);
       } else {
         // Create new entry
-        await window.electronAPI.createEntry({
+        const entry = await window.electronAPI.createEntry({
           threadId: thread.id,
-          ...entryData,
+          entryType: entryData.entryType,
+          title: entryData.title,
+          content: entryData.content,
+          entryDate: entryData.entryDate,
+          metadata: entryData.metadata,
         });
+        
+        // If there's a selected file attachment, save it before reloading
+        if (entryData.selectedFile && entryData.entryType === 'file') {
+          console.log('Saving attachment for entry ID:', entry.id);
+          const savedAttachment = await window.electronAPI.saveAttachment({
+            filePath: entryData.selectedFile.path,
+            fileName: entryData.selectedFile.name,
+            entryId: entry.id,
+          });
+          console.log('Attachment saved successfully:', savedAttachment);
+        }
       }
+      // Reload entries after attachment is saved
       await loadEntries();
       onThreadUpdated();
       setShowEntryForm(false);
       setEditingEntry(null);
     } catch (error) {
       console.error('Failed to save entry:', error);
+      alert(`Failed to save entry: ${error.message}`);
     }
   };
 
@@ -93,38 +110,60 @@ function ThreadView({ thread, onThreadUpdated }) {
     if (!thread) return;
 
     const files = Array.from(e.dataTransfer.files);
-    const emlFiles = files.filter(file => file.name.toLowerCase().endsWith('.eml'));
-
-    if (emlFiles.length === 0) {
-      alert('Please drop .eml files only');
+    
+    if (files.length === 0) {
       return;
     }
 
-    for (const file of emlFiles) {
+    for (const file of files) {
       try {
-        // Parse the .eml file
-        const parsed = await window.electronAPI.parseEmlFile(file.path);
-        
-        // Create email entry
-        await window.electronAPI.createEntry({
-          threadId: thread.id,
-          entryType: 'email',
-          title: parsed.subject,
-          content: null,
-          entryDate: parsed.date.toISOString(),
-          metadata: {
-            from: parsed.from,
-            to: parsed.to,
-            cc: parsed.cc,
-            bcc: parsed.bcc,
-            subject: parsed.subject,
-            body: parsed.body,
-            attachments: parsed.attachments,
-          },
-        });
+        // Check if it's an .eml file
+        if (file.name.toLowerCase().endsWith('.eml')) {
+          // Parse the .eml file
+          const parsed = await window.electronAPI.parseEmlFile(file.path);
+          
+          // Create email entry
+          await window.electronAPI.createEntry({
+            threadId: thread.id,
+            entryType: 'email',
+            title: parsed.subject,
+            content: null,
+            entryDate: parsed.date.toISOString(),
+            metadata: {
+              from: parsed.from,
+              to: parsed.to,
+              cc: parsed.cc,
+              bcc: parsed.bcc,
+              subject: parsed.subject,
+              body: parsed.body,
+              attachments: parsed.attachments,
+            },
+          });
+        } else {
+          // Create file attachment entry
+          const entry = await window.electronAPI.createEntry({
+            threadId: thread.id,
+            entryType: 'file',
+            title: file.name,
+            content: null,
+            entryDate: new Date().toISOString(),
+            metadata: {
+              fileName: file.name,
+              fileType: file.type || 'application/octet-stream',
+              description: '',
+            },
+          });
+          
+          // Save the actual file
+          await window.electronAPI.saveAttachment({
+            filePath: file.path,
+            fileName: file.name,
+            entryId: entry.id,
+          });
+        }
       } catch (error) {
         console.error(`Failed to process ${file.name}:`, error);
-        alert(`Failed to process ${file.name}. Please check the file format.`);
+        alert(`Failed to process ${file.name}. Error: ${error.message}`);
       }
     }
 
@@ -153,8 +192,11 @@ function ThreadView({ thread, onThreadUpdated }) {
       {isDragging && (
         <div className="drop-overlay">
           <div className="drop-message">
-            <span className="drop-icon">📧</span>
-            <p>Drop .eml files here to add email entries</p>
+            <span className="drop-icon">📎</span>
+            <p>Drop files here</p>
+            <p style={{ fontSize: '0.9rem', marginTop: '0.5rem', opacity: 0.9 }}>
+              .eml files will be parsed as emails, others will be saved as attachments
+            </p>
           </div>
         </div>
       )}

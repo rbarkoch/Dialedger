@@ -1,7 +1,67 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import Icon from './icons/Icon';
 import './EntryList.css';
+
+function FileAttachmentDisplay({ entryId }) {
+  const [attachments, setAttachments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadAttachments();
+  }, [entryId]);
+
+  const loadAttachments = async () => {
+    try {
+      console.log('Loading attachments for entry:', entryId);
+      const result = await window.electronAPI.getAttachmentsByEntry({ entryId });
+      console.log('Attachments loaded:', result);
+      setAttachments(result);
+    } catch (error) {
+      console.error('Failed to load attachments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownloadAttachment = async (attachmentId, fileName) => {
+    try {
+      await window.electronAPI.downloadAttachment({ attachmentId, fileName });
+    } catch (error) {
+      console.error('Failed to download attachment:', error);
+      alert('Failed to download file. The file may have been moved or deleted.');
+    }
+  };
+
+  if (loading) {
+    return <div className="attachment-loading">Loading attachments...</div>;
+  }
+
+  if (attachments.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="attachment-list">
+      {attachments.map(attachment => (
+        <button
+          key={attachment.id}
+          className="btn-attachment"
+          onClick={() => handleDownloadAttachment(attachment.id, attachment.file_name)}
+          title={`Download ${attachment.file_name}`}
+        >
+          <Icon name="file" size={16} />
+          <span>{attachment.file_name}</span>
+          {attachment.file_size && (
+            <span className="attachment-size">
+              ({(attachment.file_size / 1024).toFixed(1)} KB)
+            </span>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function EntryList({ entries, onDeleteEntry, onEditEntry }) {
   if (entries.length === 0) {
@@ -113,6 +173,7 @@ function EntryList({ entries, onDeleteEntry, onEditEntry }) {
               </div>
             )}
             {metadata.description && <p className="entry-text">{metadata.description}</p>}
+            <FileAttachmentDisplay key={`attachment-${entry.id}`} entryId={entry.id} />
           </div>
         );
 
