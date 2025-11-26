@@ -25,19 +25,31 @@ A desktop application for tracking conversation threads across multiple formats 
 - **Drag-and-Drop Reordering**: Reorder threads via drag-and-drop with persistent order across app restarts
 - **Multiple Entry Types**: Add notes, meetings, conversations, emails, and file attachments with type-specific fields
 - **Edit Capabilities**: Edit both threads and entries after creation
-- **Type-Specific Fields**: Each entry type has custom fields (e.g., emails have From/To/Subject/Body)
+- **Type-Specific Fields**: Each entry type has custom fields:
+  - **Notes**: Simple text content
+  - **Meetings**: Location, attendees, duration, notes
+  - **Conversations**: Participants, medium (in-person, phone, etc.), summary
+  - **Emails**: From, To, CC, BCC, subject, body, attachments list
+  - **Files**: File name, type, description with actual file storage
+- **Email Import**: Drag-and-drop .eml files to automatically parse and create email entries with full metadata (From, To, CC, BCC, subject, body, attachments)
+- **File Attachments**: 
+  - Drag-and-drop any file type to create file attachment entries
+  - Browse and select files via dialog when creating entries manually
+  - Download attachments with save-as dialog
+  - Automatic file cleanup when entries are deleted
 - **Unified Ledger View**: View all entries chronologically in a compact, minimalistic list with formatted metadata
 - **SVG Icons**: Modern Material Design icons throughout the UI with proper color theming
-- **Local Storage**: All data stored locally using SQLite with automatic timestamps and order persistence
+- **Local Storage**: All data stored locally using SQLite with automatic timestamps, order persistence, and file attachment management
 
 ## Tech Stack
 
-- **Electron**: Desktop application framework
+- **Electron**: Desktop application framework with IPC for file operations
 - **React**: UI library
 - **Vite**: Build tool and dev server with SVG-as-React-component support (vite-plugin-svgr)
-- **SQLite (better-sqlite3)**: Local database
+- **SQLite (better-sqlite3)**: Local database with threads, entries, and attachments tables
+- **mailparser**: EML file parsing for email import
 - **date-fns**: Date formatting
-- **@dnd-kit**: Modern drag-and-drop library for reordering
+- **@dnd-kit**: Modern drag-and-drop library for thread reordering
 
 ## Project Structure
 

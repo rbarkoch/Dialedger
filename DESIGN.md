@@ -27,8 +27,15 @@ one thread of conversation.
 2. **Multiple Item Types** - Entries can be added to a thread in multiple types: Note, Meeting, Conversation, E-Mail, or File Attachment.
 3. **Unified Ledger View** - Each thread of conversation can be viewed in a single scrollable list displaying each entry one-by-one.
 
-### Nice-to-Have Features (Future)
-1. **Drag-and-Drop** - User can drag-and-drop *.eml files to automatically add e-mail entries.
+### Nice-to-Have Features (Completed)
+1. **Drag-and-Drop for .eml Files** - User can drag-and-drop *.eml files to automatically parse and add e-mail entries with full metadata.
+2. **Drag-and-Drop for Any File** - User can drag-and-drop any file type to create file attachment entries with storage and download capabilities.
+3. **Thread Reordering** - User can reorder threads via drag-and-drop with persistent order across app restarts.
+
+### Future Enhancements
+1. **Search and Filter** - Search across threads and entries
+2. **Export Thread** - Export thread as PDF or markdown
+3. **Tagging System** - Add tags to threads for better organization
 
 ---
 
@@ -137,8 +144,11 @@ Email:
 {
   from: TEXT                        // Sender email address
   to: TEXT                          // Recipient email address(es)
+  cc: TEXT                          // CC recipients
+  bcc: TEXT                         // BCC recipients
   subject: TEXT                     // Email subject
   body: TEXT                        // Email body content
+  attachments: TEXT/ARRAY           // Attachment filenames (from parsed .eml)
 }
 
 Meeting:
@@ -198,9 +208,13 @@ File:
 | **entries:getByThread** | Renderer → Main | Get entries for thread | { threadId } | Array of Entry objects |
 | **entries:create** | Renderer → Main | Create new entry | { threadId, entryType, title, content, entryDate, metadata } | Entry object |
 | **entries:update** | Renderer → Main | Update entry | { id, title, content, entryDate } | Entry object |
-| **entries:delete** | Renderer → Main | Delete entry | { id } | Success boolean |
-| **attachments:add** | Renderer → Main | Add file attachment | { entryId, filePath } | Attachment object |
-| **attachments:open** | Renderer → Main | Open attachment file | { id } | Opens file in default app |
+| **entries:delete** | Renderer → Main | Delete entry | { id } | Success boolean (also deletes physical files) |
+| **eml:parse** | Renderer → Main | Parse .eml file | { filePath } | Parsed email data (from, to, cc, bcc, subject, body, attachments) |
+| **file:select** | Renderer → Main | Show file picker dialog | None | File object { path, name, size, type } |
+| **attachments:save** | Renderer → Main | Save file attachment | { entryId, filePath, fileName } | Attachment object |
+| **attachments:getByEntry** | Renderer → Main | Get attachments for entry | { entryId } | Array of Attachment objects |
+| **attachments:download** | Renderer → Main | Download/save attachment | { attachmentId, fileName } | Show save dialog and copy file |
+| **attachments:delete** | Renderer → Main | Delete attachment | { attachmentId } | Success boolean (also deletes physical file) |
 
 ---
 
@@ -266,7 +280,8 @@ File:
 - [x] **Add drag-and-drop thread reordering with persistence** - 2-3 hours
 - [x] **Replace emoji icons with SVG icons** - 2 hours
 - [x] **Modernize UI with minimalistic design** - 2 hours
-- [ ] **Add basic file attachment support** - 2-3 hours
+- [x] **Add file attachment support with drag-and-drop and browse dialog** - 3-4 hours
+- [x] **Add .eml file parsing for email import** - 2 hours
 
 ### Phase 3: Polish & Testing
 - [x] **Add basic styling and layout improvements** - 2-3 hours
