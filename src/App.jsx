@@ -58,6 +58,24 @@ function App() {
     setSelectedThread(thread);
   };
 
+  const handleReorderThreads = async (reorderedThreads) => {
+    setThreads(reorderedThreads);
+    
+    // Persist the new order to the database
+    const threadOrders = reorderedThreads.map((thread, index) => ({
+      id: thread.id,
+      order: index,
+    }));
+    
+    try {
+      await window.electronAPI.updateThreadOrder({ threadOrders });
+    } catch (error) {
+      console.error('Failed to update thread order:', error);
+      // Reload threads on error to restore correct order
+      loadThreads();
+    }
+  };
+
   if (loading) {
     return <div className="loading">Loading...</div>;
   }
@@ -71,6 +89,7 @@ function App() {
         onCreateThread={handleCreateThread}
         onUpdateThread={handleUpdateThread}
         onDeleteThread={handleDeleteThread}
+        onReorderThreads={handleReorderThreads}
       />
       <ThreadView
         thread={selectedThread}

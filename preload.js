@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   createThread: (data) => ipcRenderer.invoke('threads:create', data),
   updateThread: (data) => ipcRenderer.invoke('threads:update', data),
   deleteThread: (data) => ipcRenderer.invoke('threads:delete', data),
+  updateThreadOrder: (data) => ipcRenderer.invoke('threads:updateOrder', data),
   
   // Entries
   getEntriesByThread: (data) => ipcRenderer.invoke('entries:getByThread', data),

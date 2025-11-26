@@ -1,8 +1,73 @@
 import React, { useState } from 'react';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import Icon from './icons/Icon';
 import './ThreadList.css';
 
-function ThreadList({ threads, selectedThread, onSelectThread, onCreateThread, onDeleteThread, onUpdateThread }) {
+function SortableThreadItem({ thread, selectedThread, onSelectThread, onEditThread, onDeleteThread }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: thread.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`thread-item ${selectedThread?.id === thread.id ? 'active' : ''}`}
+      onClick={() => onSelectThread(thread)}
+    >
+      <div className="thread-drag-handle" {...attributes} {...listeners}>
+        <span className="drag-indicator">⋮⋮</span>
+      </div>
+      <div className="thread-item-content">
+        <h3>{thread.title}</h3>
+        {thread.description && <p>{thread.description}</p>}
+      </div>
+      <div className="thread-item-actions">
+        <button
+          className="btn-edit"
+          onClick={(e) => onEditThread(e, thread)}
+          title="Edit thread"
+        >
+          <Icon name="edit" size={16} />
+        </button>
+        <button
+          className="btn-delete"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (confirm(`Delete thread "${thread.title}"?`)) {
+              onDeleteThread(thread.id);
+            }
+          }}
+          title="Delete thread"
+        >
+          <Icon name="delete" size={16} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ThreadList({ threads, selectedThread, onSelectThread, onCreateThread, onDeleteThread, onUpdateThread, onReorderThreads }) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
   const [showNewThreadForm, setShowNewThreadForm] = useState(false);
   const [editingThread, setEditingThread] = useState(null);
   const [newThreadTitle, setNewThreadTitle] = useState('');
@@ -38,6 +103,18 @@ function ThreadList({ threads, selectedThread, onSelectThread, onCreateThread, o
     setEditingThread(null);
     setNewThreadTitle('');
     setNewThreadDescription('');
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = threads.findIndex((t) => t.id === active.id);
+      const newIndex = threads.findIndex((t) => t.id === over.id);
+
+      const reordered = arrayMove(threads, oldIndex, newIndex);
+      onReorderThreads(reordered);
+    }
   };
 
   return (
@@ -93,39 +170,27 @@ function ThreadList({ threads, selectedThread, onSelectThread, onCreateThread, o
             No threads yet. Create one to get started!
           </div>
         ) : (
-          threads.map((thread) => (
-            <div
-              key={thread.id}
-              className={`thread-item ${selectedThread?.id === thread.id ? 'active' : ''}`}
-              onClick={() => onSelectThread(thread)}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={threads.map((t) => t.id)}
+              strategy={verticalListSortingStrategy}
             >
-              <div className="thread-item-content">
-                <h3>{thread.title}</h3>
-                {thread.description && <p>{thread.description}</p>}
-              </div>
-              <div className="thread-item-actions">
-                <button
-                  className="btn-edit"
-                  onClick={(e) => handleEditThread(e, thread)}
-                  title="Edit thread"
-                >
-                  <Icon name="edit" size={16} />
-                </button>
-                <button
-                  className="btn-delete"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (confirm(`Delete thread "${thread.title}"?`)) {
-                      onDeleteThread(thread.id);
-                    }
-                  }}
-                  title="Delete thread"
-                >
-                  <Icon name="delete" size={16} />
-                </button>
-              </div>
-            </div>
-          ))
+              {threads.map((thread) => (
+                <SortableThreadItem
+                  key={thread.id}
+                  thread={thread}
+                  selectedThread={selectedThread}
+                  onSelectThread={onSelectThread}
+                  onEditThread={handleEditThread}
+                  onDeleteThread={onDeleteThread}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
         )}
       </div>
     </div>

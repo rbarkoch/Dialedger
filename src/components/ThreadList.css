@@ -115,11 +115,12 @@
 .thread-item {
   display: flex;
   align-items: center;
-  padding: 1rem 1.25rem;
+  padding: 1rem 1.25rem 1rem 0;
   border-bottom: 1px solid #f5f7f9;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+  gap: 0.5rem;
 }
 
 .thread-item:hover {
@@ -129,12 +130,39 @@
 .thread-item.active {
   background-color: #ebf5fb;
   border-left: 3px solid #3498db;
-  padding-left: calc(1.25rem - 3px);
+  padding-left: 0;
+}
+
+.thread-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.5rem;
+  cursor: grab;
+  color: #cbd6e0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  touch-action: none;
+}
+
+.thread-drag-handle:active {
+  cursor: grabbing;
+}
+
+.thread-item:hover .thread-drag-handle {
+  opacity: 1;
+}
+
+.drag-indicator {
+  font-size: 1rem;
+  line-height: 1;
+  user-select: none;
 }
 
 .thread-item-content {
   flex: 1;
   min-width: 0;
+  padding-left: 0.5rem;
 }
 
 .thread-item h3 {

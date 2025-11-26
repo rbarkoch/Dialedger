@@ -56,19 +56,38 @@ function initialize() {
     CREATE INDEX IF NOT EXISTS idx_attachments_entry_id ON attachments(entry_id);
   `);
   
+  // Migration: Add display_order column if it doesn't exist
+  try {
+    const columns = db.pragma('table_info(threads)');
+    const hasDisplayOrder = columns.some(col => col.name === 'display_order');
+    
+    if (!hasDisplayOrder) {
+      db.exec('ALTER TABLE threads ADD COLUMN display_order INTEGER DEFAULT 0');
+      // Set display_order based on updated_at for existing threads
+      db.exec('UPDATE threads SET display_order = id WHERE display_order = 0');
+      console.log('Added display_order column to threads table');
+    }
+  } catch (error) {
+    console.error('Migration error:', error);
+  }
+  
   console.log('Database initialized at:', dbPath);
 }
 
 // Thread operations
 function getAllThreads() {
-  const stmt = db.prepare('SELECT * FROM threads ORDER BY updated_at DESC');
+  const stmt = db.prepare('SELECT * FROM threads ORDER BY display_order ASC, updated_at DESC');
   return stmt.all();
 }
 
 function createThread(data) {
-  const stmt = db.prepare('INSERT INTO threads (title, description) VALUES (?, ?)');
-  const info = stmt.run(data.title, data.description || null);
-  return { id: info.lastInsertRowid, ...data };
+  // Get max display_order and add 1
+  const maxOrder = db.prepare('SELECT MAX(display_order) as max FROM threads').get();
+  const newOrder = (maxOrder.max || 0) + 1;
+  
+  const stmt = db.prepare('INSERT INTO threads (title, description, display_order) VALUES (?, ?, ?)');
+  const info = stmt.run(data.title, data.description || null, newOrder);
+  return { id: info.lastInsertRowid, ...data, display_order: newOrder };
 }
 
 function updateThread(data) {
@@ -80,6 +99,18 @@ function updateThread(data) {
 function deleteThread(id) {
   const stmt = db.prepare('DELETE FROM threads WHERE id = ?');
   stmt.run(id);
+  return { success: true };
+}
+
+function updateThreadOrder(threadOrders) {
+  // threadOrders is an array of { id, order } objects
+  const stmt = db.prepare('UPDATE threads SET display_order = ? WHERE id = ?');
+  const updateMany = db.transaction((orders) => {
+    for (const item of orders) {
+      stmt.run(item.order, item.id);
+    }
+  });
+  updateMany(threadOrders);
   return { success: true };
 }
 
@@ -152,6 +183,7 @@ module.exports = {
   createThread,
   updateThread,
   deleteThread,
+  updateThreadOrder,
   getEntriesByThread,
   createEntry,
   updateEntry,

@@ -63,6 +63,10 @@ ipcMain.handle('threads:delete', async (event, data) => {
   return db.deleteThread(data.id);
 });
 
+ipcMain.handle('threads:updateOrder', async (event, data) => {
+  return db.updateThreadOrder(data.threadOrders);
+});
+
 // IPC Handlers for Entries
 ipcMain.handle('entries:getByThread', async (event, data) => {
   return db.getEntriesByThread(data.threadId);
