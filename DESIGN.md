@@ -128,7 +128,7 @@ one thread of conversation.
   entry_type: TEXT NOT NULL         // 'note', 'meeting', 'conversation', 'email', 'file'
   title: TEXT                       // Entry title/subject (not used for some types)
   content: TEXT                     // Main content/body (not used for some types)
-  entry_date: DATETIME NOT NULL     // When the interaction occurred
+  entry_date: DATETIME NOT NULL     // When the interaction occurred (stored with full timestamp precision including seconds/milliseconds)
   created_at: DATETIME DEFAULT CURRENT_TIMESTAMP
   metadata: TEXT                    // JSON string for type-specific data
 }
@@ -205,7 +205,7 @@ File:
 | **threads:update** | Renderer → Main | Update thread | { id, title, description } | Thread object |
 | **threads:updateOrder** | Renderer → Main | Update thread order | { threadOrders: [{id, order}] } | Success boolean |
 | **threads:delete** | Renderer → Main | Delete thread | { id } | Success boolean |
-| **entries:getByThread** | Renderer → Main | Get entries for thread | { threadId } | Array of Entry objects |
+| **entries:getByThread** | Renderer → Main | Get entries for thread | { threadId } | Array of Entry objects (ordered ASC by entry_date) |
 | **entries:create** | Renderer → Main | Create new entry | { threadId, entryType, title, content, entryDate, metadata } | Entry object |
 | **entries:update** | Renderer → Main | Update entry | { id, title, content, entryDate } | Entry object |
 | **entries:delete** | Renderer → Main | Delete entry | { id } | Success boolean (also deletes physical files) |
@@ -282,6 +282,8 @@ File:
 - [x] **Modernize UI with minimalistic design** - 2 hours
 - [x] **Add file attachment support with drag-and-drop and browse dialog** - 3-4 hours
 - [x] **Add .eml file parsing for email import** - 2 hours
+- [x] **Add markdown rendering for text content** - 1 hour
+- [x] **Implement ascending entry order with auto-scroll to bottom** - 1 hour
 
 ### Phase 3: Polish & Testing
 - [x] **Add basic styling and layout improvements** - 2-3 hours
@@ -368,7 +370,8 @@ File:
 - ✅ User can reorder threads via drag-and-drop with persistent order
 - ✅ User can add all 5 entry types with type-specific fields (Note, Meeting, Conversation, E-Mail, File)
 - ✅ User can edit entries after creation
-- ✅ Entries display in chronological order in a compact scrollable ledger view with formatted metadata
+- ✅ Entries display in chronological order with auto-scroll to newest entry and full timestamp precision
+- ✅ Markdown rendering support for notes and text fields
 - ✅ Modern UI with SVG icons and minimalistic design
 - ✅ Data persists between application restarts
 - ✅ Application runs on macOS (tested and working)

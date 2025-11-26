@@ -37,7 +37,8 @@ A desktop application for tracking conversation threads across multiple formats 
   - Browse and select files via dialog when creating entries manually
   - Download attachments with save-as dialog
   - Automatic file cleanup when entries are deleted
-- **Unified Ledger View**: View all entries chronologically in a compact, minimalistic list with formatted metadata
+- **Markdown Support**: Full markdown rendering in notes, email body, meeting notes, conversation summary, and file descriptions
+- **Unified Ledger View**: View all entries in chronological order with auto-scroll to bottom (newest entry visible), full timestamp precision for proper ordering
 - **SVG Icons**: Modern Material Design icons throughout the UI with proper color theming
 - **Local Storage**: All data stored locally using SQLite with automatic timestamps, order persistence, and file attachment management
 
@@ -48,6 +49,7 @@ A desktop application for tracking conversation threads across multiple formats 
 - **Vite**: Build tool and dev server with SVG-as-React-component support (vite-plugin-svgr)
 - **SQLite (better-sqlite3)**: Local database with threads, entries, and attachments tables
 - **mailparser**: EML file parsing for email import
+- **react-markdown**: Markdown rendering for text content
 - **date-fns**: Date formatting
 - **@dnd-kit**: Modern drag-and-drop library for thread reordering
 

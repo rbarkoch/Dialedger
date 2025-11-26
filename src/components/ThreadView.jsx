@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import EntryList from './EntryList';
 import EntryForm from './EntryForm';
 import './ThreadView.css';
@@ -9,6 +9,7 @@ function ThreadView({ thread, onThreadUpdated }) {
   const [editingEntry, setEditingEntry] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const contentRef = useRef(null);
 
   useEffect(() => {
     if (thread) {
@@ -17,6 +18,13 @@ function ThreadView({ thread, onThreadUpdated }) {
       setEntries([]);
     }
   }, [thread]);
+
+  // Auto-scroll to bottom when entries change
+  useEffect(() => {
+    if (contentRef.current && entries.length > 0) {
+      contentRef.current.scrollTop = contentRef.current.scrollHeight;
+    }
+  }, [entries]);
 
   const loadEntries = async () => {
     if (!thread) return;
@@ -225,7 +233,7 @@ function ThreadView({ thread, onThreadUpdated }) {
         />
       )}
 
-      <div className="thread-view-content">
+      <div className="thread-view-content" ref={contentRef}>
         {loading ? (
           <div className="loading-entries">Loading entries...</div>
         ) : (

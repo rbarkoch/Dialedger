@@ -52,6 +52,7 @@ DialedgerProto/
 - **Vite 5** - Fast build tool and dev server with SVG support (vite-plugin-svgr)
 - **better-sqlite3 11** - SQLite database (local storage with threads, entries, and attachments tables)
 - **mailparser** - EML file parsing for email import
+- **react-markdown** - Markdown rendering for text content
 - **date-fns 3** - Date formatting
 - **@dnd-kit** - Modern drag-and-drop library
 
@@ -71,9 +72,10 @@ DialedgerProto/
   - Browse and select files via dialog in the form
   - Download attachments with save-as dialog
   - Automatic file cleanup when entries are deleted
+✅ **Markdown Support**: Full markdown rendering in notes, email body, meeting notes, conversation summary, and file descriptions  
 ✅ Edit entries after creation with pre-populated fields  
 ✅ Compact entry display with inline edit/delete buttons  
-✅ View entries in chronological order with formatted metadata  
+✅ View entries in chronological order with auto-scroll to bottom (newest entry visible), full timestamp precision  
 ✅ Delete threads and entries with confirmation  
 ✅ Persistent local storage with SQLite (threads, entries, attachments)  
 ✅ Modern Material Design SVG icons with color theming  

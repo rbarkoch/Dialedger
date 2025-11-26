@@ -116,7 +116,7 @@ function updateThreadOrder(threadOrders) {
 
 // Entry operations
 function getEntriesByThread(threadId) {
-  const stmt = db.prepare('SELECT * FROM entries WHERE thread_id = ? ORDER BY entry_date DESC');
+  const stmt = db.prepare('SELECT * FROM entries WHERE thread_id = ? ORDER BY entry_date ASC');
   return stmt.all(threadId);
 }
 
