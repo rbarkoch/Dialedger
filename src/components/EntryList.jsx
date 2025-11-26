@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import ReactMarkdown from 'react-markdown';
 import Icon from './icons/Icon';
 import './EntryList.css';
 
@@ -106,7 +107,9 @@ function EntryList({ entries, onDeleteEntry, onEditEntry }) {
       case 'note':
         return (
           <div className="entry-content">
-            <p className="entry-text">{metadata.content}</p>
+            <div className="entry-text markdown-content">
+              <ReactMarkdown>{metadata.content}</ReactMarkdown>
+            </div>
           </div>
         );
 
@@ -122,7 +125,11 @@ function EntryList({ entries, onDeleteEntry, onEditEntry }) {
                 {metadata.bcc && <div className="metadata-item"><strong>BCC:</strong> {metadata.bcc}</div>}
               </div>
             )}
-            {metadata.body && <p className="entry-text">{metadata.body}</p>}
+            {metadata.body && (
+              <div className="entry-text markdown-content">
+                <ReactMarkdown>{metadata.body}</ReactMarkdown>
+              </div>
+            )}
             {metadata.attachments && (
               <div className="entry-metadata">
                 <div className="metadata-item">
@@ -146,7 +153,11 @@ function EntryList({ entries, onDeleteEntry, onEditEntry }) {
                 {metadata.duration && <div className="metadata-item"><strong>Duration:</strong> {metadata.duration}</div>}
               </div>
             )}
-            {metadata.notes && <p className="entry-text">{metadata.notes}</p>}
+            {metadata.notes && (
+              <div className="entry-text markdown-content">
+                <ReactMarkdown>{metadata.notes}</ReactMarkdown>
+              </div>
+            )}
           </div>
         );
 
@@ -159,7 +170,11 @@ function EntryList({ entries, onDeleteEntry, onEditEntry }) {
                 <div className="metadata-item"><strong>Medium:</strong> {metadata.location}</div>
               </div>
             )}
-            {metadata.summary && <p className="entry-text">{metadata.summary}</p>}
+            {metadata.summary && (
+              <div className="entry-text markdown-content">
+                <ReactMarkdown>{metadata.summary}</ReactMarkdown>
+              </div>
+            )}
           </div>
         );
 
@@ -167,7 +182,11 @@ function EntryList({ entries, onDeleteEntry, onEditEntry }) {
         return (
           <div className="entry-content">
             <h3 className="entry-title">{metadata.fileName}</h3>
-            {metadata.description && <p className="entry-text">{metadata.description}</p>}
+            {metadata.description && (
+              <div className="entry-text markdown-content">
+                <ReactMarkdown>{metadata.description}</ReactMarkdown>
+              </div>
+            )}
             <FileAttachmentDisplay key={`attachment-${entry.id}`} entryId={entry.id} />
           </div>
         );
