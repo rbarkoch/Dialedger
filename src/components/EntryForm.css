@@ -14,6 +14,11 @@
   grid-template-columns: 1fr 1fr;
   gap: 1.25rem;
   margin-bottom: 1.25rem;
+  align-items: start;
+}
+
+.form-row .form-group label {
+  margin-top: 0;
 }
 
 .form-group {
@@ -23,11 +28,16 @@
 
 .form-group label {
   font-weight: 600;
+  margin-top: 1rem;
   margin-bottom: 0.5rem;
   font-size: 0.85rem;
   color: #2c3e50;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.form-group:first-child label {
+  margin-top: 0;
 }
 
 .form-group input,
