@@ -1,6 +1,19 @@
 .entry-list {
   max-width: 900px;
   margin: 0 auto;
+  position: relative;
+}
+
+.entry-list::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #3498db;
+  z-index: 0;
 }
 
 .empty-entries {
@@ -17,6 +30,7 @@
   margin-bottom: 1rem;
   position: relative;
   transition: all 0.2s ease;
+  z-index: 1;
 }
 
 .entry-item:hover {
