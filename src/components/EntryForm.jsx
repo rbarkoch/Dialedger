@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import api from '../api';
 import './EntryForm.css';
 
 const ENTRY_TYPES = [
@@ -85,7 +86,7 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
 
   const handleBrowseFile = async () => {
     try {
-      const file = await window.electronAPI.selectFile();
+      const file = await api.selectFile();
       console.log('File selected:', file);
       if (file) {
         setSelectedFile(file);

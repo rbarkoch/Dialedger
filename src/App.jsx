@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ThreadList from './components/ThreadList';
 import ThreadView from './components/ThreadView';
+import api from './api';
 import './App.css';
 
 function App() {
@@ -14,7 +15,7 @@ function App() {
 
   const loadThreads = async () => {
     try {
-      const allThreads = await window.electronAPI.getAllThreads();
+      const allThreads = await api.getAllThreads();
       setThreads(allThreads);
       setLoading(false);
     } catch (error) {
@@ -25,7 +26,7 @@ function App() {
 
   const handleCreateThread = async (title, description) => {
     try {
-      const newThread = await window.electronAPI.createThread({ title, description });
+      const newThread = await api.createThread({ title, description });
       await loadThreads();
       setSelectedThread(newThread);
     } catch (error) {
@@ -35,7 +36,7 @@ function App() {
 
   const handleUpdateThread = async (threadId, title, description) => {
     try {
-      await window.electronAPI.updateThread({ id: threadId, title, description });
+      await api.updateThread({ id: threadId, title, description });
       await loadThreads();
     } catch (error) {
       console.error('Failed to update thread:', error);
@@ -44,7 +45,7 @@ function App() {
 
   const handleDeleteThread = async (threadId) => {
     try {
-      await window.electronAPI.deleteThread({ id: threadId });
+      await api.deleteThread({ id: threadId });
       await loadThreads();
       if (selectedThread?.id === threadId) {
         setSelectedThread(null);
@@ -68,7 +69,7 @@ function App() {
     }));
     
     try {
-      await window.electronAPI.updateThreadOrder({ threadOrders });
+      await api.updateThreadOrder({ threadOrders });
     } catch (error) {
       console.error('Failed to update thread order:', error);
       // Reload threads on error to restore correct order

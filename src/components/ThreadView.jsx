@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import EntryList from './EntryList';
 import EntryForm from './EntryForm';
+import api, { isElectron } from '../api';
 import './ThreadView.css';
 
 function ThreadView({ thread, onThreadUpdated }) {
@@ -32,7 +33,7 @@ function ThreadView({ thread, onThreadUpdated }) {
     
     setLoading(true);
     try {
-      const threadEntries = await window.electronAPI.getEntriesByThread({ threadId: thread.id });
+      const threadEntries = await api.getEntriesByThread({ threadId: thread.id });
       setEntries(threadEntries);
     } catch (error) {
       console.error('Failed to load entries:', error);
@@ -45,11 +46,11 @@ function ThreadView({ thread, onThreadUpdated }) {
     try {
       if (entryData.id) {
         // Update existing entry - entryDate is already handled in EntryForm
-        await window.electronAPI.updateEntry(entryData);
+        await api.updateEntry(entryData);
         setNewEntryId(null); // Clear animation for edits
       } else {
         // Create new entry
-        const entry = await window.electronAPI.createEntry({
+        const entry = await api.createEntry({
           threadId: thread.id,
           entryType: entryData.entryType,
           title: entryData.title,
@@ -64,9 +65,10 @@ function ThreadView({ thread, onThreadUpdated }) {
         // If there's a selected file attachment, save it before reloading
         if (entryData.selectedFile && entryData.entryType === 'file') {
           console.log('Saving attachment for entry ID:', entry.id);
-          const savedAttachment = await window.electronAPI.saveAttachment({
+          const savedAttachment = await api.saveAttachment({
             filePath: entryData.selectedFile.path,
             fileName: entryData.selectedFile.name,
+            file: entryData.selectedFile.file, // For web upload
             entryId: entry.id,
           });
           console.log('Attachment saved successfully:', savedAttachment);
@@ -98,7 +100,7 @@ function ThreadView({ thread, onThreadUpdated }) {
 
   const handleDeleteEntry = async (entryId) => {
     try {
-      await window.electronAPI.deleteEntry({ id: entryId });
+      await api.deleteEntry({ id: entryId });
       await loadEntries();
       onThreadUpdated();
     } catch (error) {
@@ -135,16 +137,16 @@ function ThreadView({ thread, onThreadUpdated }) {
       try {
         // Check if it's an .eml file
         if (file.name.toLowerCase().endsWith('.eml')) {
-          // Parse the .eml file
-          const parsed = await window.electronAPI.parseEmlFile(file.path);
+          // Parse the .eml file - in web mode, pass the File object; in Electron, pass the path
+          const parsed = await api.parseEmlFile(isElectron ? file.path : file);
           
           // Create email entry
-          await window.electronAPI.createEntry({
+          await api.createEntry({
             threadId: thread.id,
             entryType: 'email',
             title: parsed.subject,
             content: null,
-            entryDate: parsed.date.toISOString(),
+            entryDate: new Date(parsed.date).toISOString(),
             metadata: {
               from: parsed.from,
               to: parsed.to,
@@ -157,7 +159,7 @@ function ThreadView({ thread, onThreadUpdated }) {
           });
         } else {
           // Create file attachment entry
-          const entry = await window.electronAPI.createEntry({
+          const entry = await api.createEntry({
             threadId: thread.id,
             entryType: 'file',
             title: file.name,
@@ -171,9 +173,10 @@ function ThreadView({ thread, onThreadUpdated }) {
           });
           
           // Save the actual file
-          await window.electronAPI.saveAttachment({
-            filePath: file.path,
+          await api.saveAttachment({
+            filePath: isElectron ? file.path : undefined,
             fileName: file.name,
+            file: isElectron ? undefined : file, // For web upload
             entryId: entry.id,
           });
         }

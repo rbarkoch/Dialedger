@@ -1,0 +1,16 @@
+services:
+  dialedger:
+    build: .
+    ports:
+      - "3001:3001"
+    volumes:
+      - dialedger-data:/app/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATA_PATH=/app/data
+    restart: unless-stopped
+
+volumes:
+  dialedger-data:
+    driver: local

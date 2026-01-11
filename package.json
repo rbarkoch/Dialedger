@@ -12,12 +12,18 @@
     "electron:build:win": "vite build && electron-builder --win --x64",
     "electron:build:win:portable": "vite build && electron-builder --win portable --x64",
     "electron:build:all": "vite build && electron-builder --mac --win --linux",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server:dev": "vite build && node server/index.js",
+    "server:start": "node server/index.js",
+    "docker:build": "docker build -t dialedger .",
+    "docker:run": "docker run -p 3001:3001 -v dialedger-data:/app/data dialedger"
   },
   "keywords": [
     "electron",
     "conversation",
-    "tracking"
+    "tracking",
+    "docker",
+    "web"
   ],
   "author": "",
   "license": "MIT",
@@ -36,8 +42,11 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "better-sqlite3": "^11.7.0",
+    "cors": "^2.8.5",
     "date-fns": "^3.0.6",
+    "express": "^4.18.2",
     "mailparser": "^3.9.0",
+    "multer": "^1.4.5-lts.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^10.1.0"

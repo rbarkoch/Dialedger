@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build outputs (we build inside Docker)
+dist/
+
+# Electron specific files
+dist-electron/
+
+# Development files
+*.log
+*.tmp
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Local data
+data/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+*.test.js
+*.spec.js
+__tests__/
+coverage/
+
+# Build configuration for Electron
+build/

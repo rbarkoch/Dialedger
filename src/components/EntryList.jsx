@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
+import api from '../api';
 import Icon from './icons/Icon';
 import './EntryList.css';
 
@@ -15,7 +16,7 @@ function FileAttachmentDisplay({ entryId }) {
   const loadAttachments = async () => {
     try {
       console.log('Loading attachments for entry:', entryId);
-      const result = await window.electronAPI.getAttachmentsByEntry({ entryId });
+      const result = await api.getAttachmentsByEntry({ entryId });
       console.log('Attachments loaded:', result);
       setAttachments(result);
     } catch (error) {
@@ -27,7 +28,7 @@ function FileAttachmentDisplay({ entryId }) {
 
   const handleDownloadAttachment = async (attachmentId, fileName) => {
     try {
-      await window.electronAPI.downloadAttachment({ attachmentId, fileName });
+      await api.downloadAttachment({ attachmentId, fileName });
     } catch (error) {
       console.error('Failed to download attachment:', error);
       alert('Failed to download file. The file may have been moved or deleted.');
