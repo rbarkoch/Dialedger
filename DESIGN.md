@@ -59,23 +59,30 @@ one thread of conversation.
 - **Framework/Library**: React
 - **Styling**: CSS with basic styling (potentially Tailwind CSS for rapid prototyping)
 - **State Management**: React Context API (sufficient for prototype)
+- **API Abstraction**: Unified API layer (`src/api.js`) that works with both Electron IPC and REST API
 
 #### Backend
-- **Language/Runtime**: Node.js (built into Electron)
-- **Framework**: Electron main process
-- **API Type**: IPC (Inter-Process Communication) between Electron main and renderer processes
+- **Language/Runtime**: Node.js
+- **Desktop Framework**: Electron main process with IPC
+- **Web Framework**: Express.js for Docker/web deployment
+- **API Type**: 
+  - Electron: IPC (Inter-Process Communication) between main and renderer processes
+  - Web: REST API via Express.js
 
 #### Database
-- **Type**: SQLite (local file-based database, perfect for desktop apps)
+- **Type**: SQLite (local file-based database, works for both desktop and containerized apps)
 - **ORM/ODM**: better-sqlite3 (simple and synchronous, easy to work with)
 
 #### Infrastructure
-- **Hosting**: Local desktop application (cross-platform: Windows, macOS, Linux)
-- **Authentication**: None (single-user desktop application)
+- **Desktop**: Local Electron application (cross-platform: Windows, macOS, Linux)
+- **Web/Docker**: Containerized Express server with persistent volume storage
+- **Authentication**: None (single-user or shared local deployment)
 
 ### System Architecture
-**Electron desktop application with main process handling database operations and renderer process for UI. All data stored locally in SQLite database file.**
 
+The application supports two deployment modes with a shared React frontend:
+
+#### Desktop Mode (Electron)
 ```
 ┌─────────────────────────────────────┐
 │     Electron Application            │
@@ -83,8 +90,7 @@ one thread of conversation.
 │  ┌───────────────────────────────┐ │
 │  │   Renderer Process (React)    │ │
 │  │   - UI Components             │ │
-│  │   - Thread List               │ │
-│  │   - Entry Forms               │ │
+│  │   - API Layer (IPC mode)      │ │
 │  └──────────┬────────────────────┘ │
 │             │ IPC                   │
 │             ▼                       │
@@ -97,8 +103,38 @@ one thread of conversation.
 │             ▼                       │
 │  ┌───────────────────────────────┐ │
 │  │   SQLite Database             │ │
-│  │   - threads.db                │ │
+│  │   - dialedger.db              │ │
 │  └───────────────────────────────┘ │
+└─────────────────────────────────────┘
+```
+
+#### Web Mode (Docker/Express)
+```
+┌─────────────────────────────────────┐
+│     Docker Container                │
+│                                     │
+│  ┌───────────────────────────────┐ │
+│  │   Express Server (Node.js)    │ │
+│  │   - Serves React static files │ │
+│  │   - REST API endpoints        │ │
+│  │   - File upload (multer)      │ │
+│  └──────────┬────────────────────┘ │
+│             │                       │
+│             ▼                       │
+│  ┌───────────────────────────────┐ │
+│  │   SQLite Database             │ │
+│  │   - /app/data/dialedger.db    │ │
+│  └───────────────────────────────┘ │
+│                                     │
+│  Volume: /app/data (persistent)    │
+└─────────────────────────────────────┘
+        ▲
+        │ HTTP/REST
+        ▼
+┌─────────────────────────────────────┐
+│   Browser (React SPA)               │
+│   - UI Components                   │
+│   - API Layer (REST mode)           │
 └─────────────────────────────────────┘
 ```
 
@@ -218,6 +254,42 @@ File:
 
 ---
 
+## 6b. REST API Endpoints (Web/Docker)
+
+When running as a web application, the Express server provides REST API endpoints that mirror the IPC channels:
+
+### Thread Endpoints
+| Method | Endpoint | Purpose | Request Body | Response |
+|--------|----------|---------|--------------|----------|
+| GET | `/api/threads` | Get all threads | - | Array of Thread objects |
+| POST | `/api/threads` | Create thread | { title, description } | Thread object |
+| PUT | `/api/threads/:id` | Update thread | { title, description } | Thread object |
+| PUT | `/api/threads/order` | Update order | { threadOrders: [{id, order}] } | Success |
+| DELETE | `/api/threads/:id` | Delete thread | - | Success |
+
+### Entry Endpoints
+| Method | Endpoint | Purpose | Request Body | Response |
+|--------|----------|---------|--------------|----------|
+| GET | `/api/entries/:threadId` | Get entries | - | Array of Entry objects |
+| POST | `/api/entries` | Create entry | Entry data | Entry object |
+| PUT | `/api/entries/:id` | Update entry | Entry data | Entry object |
+| DELETE | `/api/entries/:id` | Delete entry | - | Success |
+
+### Attachment Endpoints
+| Method | Endpoint | Purpose | Request Body | Response |
+|--------|----------|---------|--------------|----------|
+| GET | `/api/attachments/:entryId` | Get attachments | - | Array of Attachment objects |
+| POST | `/api/attachments/:entryId` | Upload file | multipart/form-data | Attachment object |
+| GET | `/api/attachments/download/:id` | Download file | - | File download |
+| DELETE | `/api/attachments/:id` | Delete attachment | - | Success |
+
+### Other Endpoints
+| Method | Endpoint | Purpose | Request Body | Response |
+|--------|----------|---------|--------------|----------|
+| POST | `/api/eml/parse` | Parse .eml file | multipart/form-data | Parsed email data |
+
+---
+
 ## 7. UI/UX Design
 
 ### Key Screens/Views
@@ -235,29 +307,36 @@ File:
 ## 8. Security & Privacy
 
 ### Authentication & Authorization
-**Not applicable for prototype - single-user desktop application with local data storage.**
+**Not applicable for prototype - single-user desktop application or shared local network deployment with local data storage.**
 
 ### Data Protection
-**All data stored locally in SQLite database file in user's application data directory. No encryption for prototype phase.**
+**All data stored locally in SQLite database file:**
+- **Electron**: User's application data directory
+- **Docker**: Mounted volume at `/app/data`
+
+No encryption for prototype phase.
 
 ### Security Considerations
-- **Local Data Only**: All data remains on user's machine, no network transmission
+- **Local Data Only**: All data remains on user's machine or local Docker host, no cloud transmission
 - **Basic Input Validation**: Validate user inputs to prevent SQLite injection
+- **Docker Network**: When running in Docker, the app is accessible on the local network; consider firewall rules for multi-user scenarios
 
 ---
 
 ## 9. Performance & Scalability
 
 ### Expected Load
-- **Initial Users**: Single user per installation
-- **Concurrent Users**: 1 (desktop application)
+- **Initial Users**: Single user per installation (Electron) or small team (Docker)
+- **Concurrent Users**: 1 (Electron), multiple (Docker - shared database)
 - **Data Volume**: Estimated 100-1000 threads, 10-100 entries per thread
+- **File Upload Limit**: 100MB per file (web mode)
 
 ### Optimization Strategies
 **SQLite provides excellent performance for local data. For prototype, no specific optimizations needed. Future considerations:**
 - Lazy loading of thread entries (load on demand)
 - Pagination for large thread lists
 - Database indexes on thread_id and entry_date fields
+- Connection pooling for multi-user Docker deployments
 
 ---
 
@@ -310,32 +389,52 @@ File:
 - Add different types of entries to threads
 - View entries in chronological order
 - Attach and open files
+- Test both Electron and Docker deployments
 
 ---
 
 ## 12. Dependencies & Third-Party Services
 
 ### External APIs
-- **None**: Fully offline desktop application
+- **None**: Fully offline application (both Electron and Docker)
 
 ### Third-Party Libraries
 - **Electron**: Desktop application framework
+- **Express**: Web server for Docker deployment
 - **React**: UI library
 - **better-sqlite3**: SQLite database driver
+- **multer**: File upload handling for web mode
+- **mailparser**: EML file parsing
 - **date-fns**: Date formatting and manipulation
-- **Tailwind CSS** (optional): Utility-first CSS framework for rapid styling
+- **react-markdown**: Markdown rendering
+- **@dnd-kit**: Drag-and-drop functionality
 
 ---
 
 ## 13. Deployment & DevOps
 
 ### Deployment Strategy
+
+#### Desktop (Electron)
 **Manual packaging using electron-builder for macOS, Windows, and Linux. Distribute as downloadable installers.**
 
+#### Web (Docker)
+**Containerized deployment using Docker with Docker Compose for easy setup.**
+
+```bash
+# Build and run
+docker compose up --build
+
+# Or with Docker directly
+docker build -t dialedger .
+docker run -p 3001:3001 -v dialedger-data:/app/data dialedger
+```
+
 ### Environment Configuration
-- **Development**: `npm run dev` - Electron with hot reload
-- **Staging**: Not applicable for prototype
-- **Production**: `npm run build` - Creates packaged executables
+- **Development (Electron)**: `npm run electron:dev` - Electron with hot reload
+- **Development (Web)**: `npm run server:dev` - Express server with built React app
+- **Production (Electron)**: `npm run electron:build` - Creates packaged executables
+- **Production (Docker)**: `docker compose up --build` - Containerized deployment
 
 ### Monitoring & Logging
 **Console logging only for prototype. No external monitoring or analytics.**
@@ -346,9 +445,14 @@ File:
 
 ### Technical Constraints
 - **Local Storage Only**: No cloud sync or backup functionality
-- **Single User**: No multi-user or collaboration features
-- **Basic UI**: Minimal styling and polish for prototype phase
-- **No Email Parsing**: .eml files must be manually processed (drag-and-drop is future feature)
+- **Basic Authentication**: No user authentication (single-user or trusted network only)
+- **File Upload Limits**: 100MB max file size in web mode
+- **macOS Packages**: Bundle files (.scriv, .app) cannot be uploaded directly in web mode (must be zipped first)
+
+### Completed Features (Previously Listed as Limitations)
+- ✅ Email Parsing: .eml files can be drag-and-dropped for automatic parsing
+- ✅ Docker Deployment: Web application mode with containerized deployment
+- ✅ Multi-mode API: Unified API layer supporting both Electron IPC and REST
 
 ### Business Constraints
 - **Prototype Phase**: Focus on core functionality, defer advanced features
