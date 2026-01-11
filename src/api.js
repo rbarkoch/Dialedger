@@ -92,6 +92,11 @@ const webAPI = {
   },
   
   saveAttachment: async (data) => {
+    // data.file should be the File object from selectFile()
+    if (!data.file) {
+      throw new Error('No file provided for upload');
+    }
+    
     const formData = new FormData();
     formData.append('file', data.file);
     
