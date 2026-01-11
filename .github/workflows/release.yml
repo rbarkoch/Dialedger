@@ -1,0 +1,165 @@
+name: Release
+
+permissions:
+  contents: write
+  packages: write
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  # Build and publish Docker image
+  docker:
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: dialedger
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Lowercase owner
+        id: repo
+        run: |
+          OWNER_LC=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+          echo "owner=${OWNER_LC}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push to GHCR
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.repo.outputs.owner }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+            ghcr.io/${{ steps.repo.outputs.owner }}/${{ env.IMAGE_NAME }}:latest
+
+  # Build standalone Electron apps
+  build-electron:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: windows-latest
+            platform: win
+          - os: macos-latest
+            platform: mac
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Electron app (Linux)
+        if: matrix.platform == 'linux'
+        run: npm run electron:build -- --linux
+
+      - name: Build Electron app (Windows)
+        if: matrix.platform == 'win'
+        run: npm run electron:build -- --win --x64
+
+      - name: Build Electron app (macOS)
+        if: matrix.platform == 'mac'
+        run: npm run electron:build -- --mac
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dialedger-${{ matrix.platform }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.zip
+          if-no-files-found: ignore
+
+  # Create GitHub release with all artifacts
+  release:
+    needs: [docker, build-electron]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -la artifacts/ || echo "No artifacts directory"
+
+      - name: Lowercase owner
+        id: repo
+        run: |
+          OWNER_LC=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+          echo "owner=${OWNER_LC}" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Dialedger v${{ steps.version.outputs.version }}
+          body: |
+            ## Dialedger v${{ steps.version.outputs.version }}
+
+            ### Downloads
+            - **Windows**: Download the `.exe` installer or portable version
+            - **macOS**: Download the `.dmg` disk image
+            - **Linux**: Download the `.AppImage`
+
+            ### Docker
+            ```bash
+            docker pull ghcr.io/${{ steps.repo.outputs.owner }}/dialedger:${{ steps.version.outputs.version }}
+            ```
+
+            Or use the latest tag:
+            ```bash
+            docker pull ghcr.io/${{ steps.repo.outputs.owner }}/dialedger:latest
+            ```
+
+            Run with:
+            ```bash
+            docker run -p 3001:3001 -v dialedger-data:/app/data ghcr.io/${{ steps.repo.outputs.owner }}/dialedger:latest
+            ```
+          files: artifacts/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
