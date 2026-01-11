@@ -114,8 +114,12 @@
 
 .entry-text.collapsed {
   max-height: 200px;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
+}
+
+.entry-text.collapsed.has-more {
+  overflow: hidden;
 }
 
 .entry-text.collapsed.has-more::after {
@@ -265,10 +269,19 @@
 .markdown-content h4,
 .markdown-content h5,
 .markdown-content h6 {
-  margin-top: 1em;
-  margin-bottom: 0.5em;
+  margin-top: 0;
+  margin-bottom: 0;
   font-weight: 600;
   color: #2c3e50;
+}
+
+.markdown-content h1:first-child,
+.markdown-content h2:first-child,
+.markdown-content h3:first-child,
+.markdown-content h4:first-child,
+.markdown-content h5:first-child,
+.markdown-content h6:first-child {
+  margin-top: 0;
 }
 
 .markdown-content h1 {
@@ -286,7 +299,10 @@
 }
 
 .markdown-content p {
+  display: block;
   margin: 0.5em 0;
+  white-space: normal;
+  color: inherit;
 }
 
 .markdown-content ul,
