@@ -211,6 +211,53 @@ function deleteAttachment(id) {
   return { success: true };
 }
 
+// Search function - searches across threads and entries
+function search(query, options = {}) {
+  const { entryTypes, threadId } = options;
+  const searchTerm = `%${query}%`;
+  const results = {
+    threads: [],
+    entries: [],
+  };
+
+  // Search threads (title and description)
+  const threadStmt = db.prepare(`
+    SELECT * FROM threads
+    WHERE title LIKE ? OR description LIKE ?
+    ORDER BY updated_at DESC
+  `);
+  results.threads = threadStmt.all(searchTerm, searchTerm);
+
+  // Build entry search query with optional filters
+  let entryQuery = `
+    SELECT e.*, t.title as thread_title
+    FROM entries e
+    JOIN threads t ON e.thread_id = t.id
+    WHERE (e.title LIKE ? OR e.content LIKE ? OR e.metadata LIKE ?)
+  `;
+  const params = [searchTerm, searchTerm, searchTerm];
+
+  // Filter by entry types if specified
+  if (entryTypes && entryTypes.length > 0) {
+    const placeholders = entryTypes.map(() => '?').join(', ');
+    entryQuery += ` AND e.entry_type IN (${placeholders})`;
+    params.push(...entryTypes);
+  }
+
+  // Filter by thread if specified
+  if (threadId) {
+    entryQuery += ' AND e.thread_id = ?';
+    params.push(threadId);
+  }
+
+  entryQuery += ' ORDER BY e.entry_date DESC';
+
+  const entryStmt = db.prepare(entryQuery);
+  results.entries = entryStmt.all(...params);
+
+  return results;
+}
+
 module.exports = {
   initialize,
   getAllThreads,
@@ -226,4 +273,5 @@ module.exports = {
   getAttachmentsByEntry,
   getAttachmentById,
   deleteAttachment,
+  search,
 };

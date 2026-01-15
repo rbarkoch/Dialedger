@@ -271,3 +271,13 @@ ipcMain.handle('attachments:delete', async (event, data) => {
     throw error;
   }
 });
+
+// IPC Handler for search
+ipcMain.handle('search', async (event, data) => {
+  try {
+    return db.search(data.query, data.options || {});
+  } catch (error) {
+    console.error('Error searching:', error);
+    throw error;
+  }
+});

@@ -4,7 +4,7 @@ import EntryForm from './EntryForm';
 import api, { isElectron } from '../api';
 import './ThreadView.css';
 
-function ThreadView({ thread, onThreadUpdated }) {
+function ThreadView({ thread, onThreadUpdated, highlightedEntryId }) {
   const [entries, setEntries] = useState([]);
   const [showEntryForm, setShowEntryForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
@@ -21,12 +21,22 @@ function ThreadView({ thread, onThreadUpdated }) {
     }
   }, [thread]);
 
-  // Auto-scroll to bottom when entries change
+  // Auto-scroll to bottom when entries change (but not when highlighting)
   useEffect(() => {
-    if (contentRef.current && entries.length > 0) {
+    if (contentRef.current && entries.length > 0 && !highlightedEntryId) {
       contentRef.current.scrollTop = contentRef.current.scrollHeight;
     }
-  }, [entries]);
+  }, [entries, highlightedEntryId]);
+
+  // Scroll to highlighted entry from search
+  useEffect(() => {
+    if (highlightedEntryId && contentRef.current) {
+      const entryElement = document.getElementById(`entry-${highlightedEntryId}`);
+      if (entryElement) {
+        entryElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [highlightedEntryId, entries]);
 
   const loadEntries = async () => {
     if (!thread) return;
@@ -253,6 +263,7 @@ function ThreadView({ thread, onThreadUpdated }) {
             onDeleteEntry={handleDeleteEntry}
             onEditEntry={handleEditEntry}
             newEntryId={newEntryId}
+            highlightedEntryId={highlightedEntryId}
           />
         )}
       </div>

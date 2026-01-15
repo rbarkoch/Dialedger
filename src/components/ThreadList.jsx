@@ -3,6 +3,7 @@ import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from 
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import Icon from './icons/Icon';
+import SearchBar from './SearchBar';
 import './ThreadList.css';
 
 function SortableThreadItem({ thread, selectedThread, onSelectThread, onEditThread, onDeleteThread }) {
@@ -60,7 +61,7 @@ function SortableThreadItem({ thread, selectedThread, onSelectThread, onEditThre
   );
 }
 
-function ThreadList({ threads, selectedThread, onSelectThread, onCreateThread, onDeleteThread, onUpdateThread, onReorderThreads }) {
+function ThreadList({ threads, selectedThread, onSelectThread, onCreateThread, onDeleteThread, onUpdateThread, onReorderThreads, onSelectEntry }) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -121,21 +122,27 @@ function ThreadList({ threads, selectedThread, onSelectThread, onCreateThread, o
     <div className="thread-list">
       <div className="thread-list-header">
         <h2>Threads</h2>
-        <button
-          className="btn-new-thread"
-          onClick={() => {
-            setShowNewThreadForm(!showNewThreadForm);
-            setEditingThread(null);
-            setNewThreadTitle('');
-            setNewThreadDescription('');
-          }}
-        >
-          {showNewThreadForm && !editingThread ? (
-            <Icon name="close" size={18} />
-          ) : (
-            <Icon name="plus" size={18} />
-          )}
-        </button>
+        <div className="header-actions">
+          <SearchBar
+            onSelectThread={onSelectThread}
+            onSelectEntry={onSelectEntry}
+          />
+          <button
+            className="btn-new-thread"
+            onClick={() => {
+              setShowNewThreadForm(!showNewThreadForm);
+              setEditingThread(null);
+              setNewThreadTitle('');
+              setNewThreadDescription('');
+            }}
+          >
+            {showNewThreadForm && !editingThread ? (
+              <Icon name="close" size={18} />
+            ) : (
+              <Icon name="plus" size={18} />
+            )}
+          </button>
+        </div>
       </div>
 
       {showNewThreadForm && (

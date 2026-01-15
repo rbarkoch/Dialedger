@@ -65,7 +65,7 @@ function FileAttachmentDisplay({ entryId }) {
   );
 }
 
-function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId }) {
+function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId, highlightedEntryId }) {
   const [expandedEntries, setExpandedEntries] = useState(new Set());
 
   const toggleExpanded = (entryId) => {
@@ -282,7 +282,12 @@ function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId }) {
   return (
     <div className="entry-list">
       {entries.map((entry, index) => (
-        <div key={entry.id} className={`entry-item ${entry.id === newEntryId ? 'entry-new' : ''}`} data-entry-id={entry.id}>
+        <div
+          key={entry.id}
+          id={`entry-${entry.id}`}
+          className={`entry-item ${entry.id === newEntryId ? 'entry-new' : ''} ${entry.id === highlightedEntryId ? 'entry-highlighted' : ''}`}
+          data-entry-id={entry.id}
+        >
           <div className="entry-header">
             <div className="entry-type">
               <span className="entry-icon">

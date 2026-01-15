@@ -38,12 +38,32 @@
   animation: backgroundFade 1s ease-out;
 }
 
+.entry-item.entry-highlighted {
+  animation: highlightPulse 3s ease-out;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+}
+
 @keyframes backgroundFade {
   0% {
     background-color: #ebf5fb;
   }
   100% {
     background-color: #ffffff;
+  }
+}
+
+@keyframes highlightPulse {
+  0% {
+    background-color: #fff3cd;
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.4);
+  }
+  50% {
+    background-color: #fff3cd;
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.4);
+  }
+  100% {
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   }
 }
 
