@@ -45,22 +45,53 @@ Tracking conversations across different channels is hard. One topic might span m
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18 or later
-- [Docker](https://www.docker.com/) (optional, for containerized deployment)
+- [Docker](https://www.docker.com/) for containerized deployment
+- [Node.js](https://nodejs.org/) 18 or later (for development or desktop build)
 
-### Quick Start (Docker)
+### Quick Start (Docker - Pre-built Image)
 
-The fastest way to try Dialedger:
+The fastest way to try Dialedger using the pre-built Docker image:
 
 ```bash
-docker compose up --build
+docker pull ghcr.io/rbarkoch/dialedger:latest
+docker run -p 3001:3001 -v dialedger-data:/app/data ghcr.io/rbarkoch/dialedger:latest
 ```
 
-Open http://localhost:3001 in your browser. That's it!
+Or use docker-compose for easier management:
+
+```yaml
+# docker-compose.yml
+services:
+  dialedger:
+    image: ghcr.io/rbarkoch/dialedger:latest
+    ports:
+      - "3001:3001"
+    volumes:
+      - dialedger-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  dialedger-data:
+```
+
+Save this as `docker-compose.yml` and run:
+
+```bash
+docker compose up -d
+```
+
+Open http://localhost:3001 in your browser. Your data persists in the `dialedger-data` volume.
 
 ### Quick Start (Desktop)
 
 For the full desktop experience with native file dialogs:
+
+Download the latest installer from the [Releases](https://github.com/rbarkoch/DialedgerProto/releases) page:
+- **Windows**: `.exe` installer
+- **macOS**: `.dmg` disk image
+- **Linux**: `.AppImage`
+
+Or run from source:
 
 ```bash
 # Install dependencies
