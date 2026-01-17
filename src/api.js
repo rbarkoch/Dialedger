@@ -162,6 +162,17 @@ const webAPI = {
       input.click();
     });
   },
+
+  // Search
+  search: async (data) => {
+    const response = await fetch('/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to search');
+    return response.json();
+  },
 };
 
 // Export the appropriate API based on environment

@@ -27,4 +27,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAttachmentsByEntry: (data) => ipcRenderer.invoke('attachments:getByEntry', data),
   downloadAttachment: (data) => ipcRenderer.invoke('attachments:download', data),
   deleteAttachment: (data) => ipcRenderer.invoke('attachments:delete', data),
+
+  // Search
+  search: (data) => ipcRenderer.invoke('search', data),
 });

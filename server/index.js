@@ -266,6 +266,21 @@ app.post('/api/eml/parse', upload.single('file'), async (req, res) => {
   }
 });
 
+// Search route
+app.post('/api/search', (req, res) => {
+  try {
+    const { query, options } = req.body;
+    if (!query || typeof query !== 'string') {
+      return res.status(400).json({ error: 'Search query is required' });
+    }
+    const results = db.search(query, options || {});
+    res.json(results);
+  } catch (error) {
+    console.error('Error searching:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Fallback to serve React app for all other routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'));

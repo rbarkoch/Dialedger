@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import ThreadList from './components/ThreadList';
 import ThreadView from './components/ThreadView';
+import SearchBar from './components/SearchBar';
 import api from './api';
 import './App.css';
 
 function App() {
   const [threads, setThreads] = useState([]);
   const [selectedThread, setSelectedThread] = useState(null);
+  const [highlightedEntryId, setHighlightedEntryId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,6 +59,16 @@ function App() {
 
   const handleSelectThread = (thread) => {
     setSelectedThread(thread);
+    setHighlightedEntryId(null);
+  };
+
+  const handleSelectEntry = (thread, entryId) => {
+    // First, find the full thread object if we only have partial info
+    const fullThread = threads.find((t) => t.id === thread.id) || thread;
+    setSelectedThread(fullThread);
+    setHighlightedEntryId(entryId);
+    // Clear highlight after a delay
+    setTimeout(() => setHighlightedEntryId(null), 3000);
   };
 
   const handleReorderThreads = async (reorderedThreads) => {
@@ -91,10 +103,12 @@ function App() {
         onUpdateThread={handleUpdateThread}
         onDeleteThread={handleDeleteThread}
         onReorderThreads={handleReorderThreads}
+        onSelectEntry={handleSelectEntry}
       />
       <ThreadView
         thread={selectedThread}
         onThreadUpdated={loadThreads}
+        highlightedEntryId={highlightedEntryId}
       />
     </div>
   );

@@ -22,6 +22,12 @@
   letter-spacing: -0.3px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .btn-new-thread {
   width: 36px;
   height: 36px;
