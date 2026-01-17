@@ -294,6 +294,7 @@ function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId, highlighte
                 <Icon name={entry.entry_type} size={20} />
               </span>
               <span className="entry-type-label">{getEntryTypeLabel(entry.entry_type)}</span>
+              {entry.title && <span className="entry-title-header">— {entry.title}</span>}
             </div>
             <div className="entry-header-right">
               <div className="entry-date">{formatDate(entry.entry_date)}</div>
