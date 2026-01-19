@@ -243,9 +243,23 @@ function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId, highlighte
         );
 
       case 'file':
+        // Handle both legacy single-file format and new multi-file format
+        const fileTitle = metadata.files
+          ? `${metadata.files.length} file${metadata.files.length > 1 ? 's' : ''}`
+          : metadata.fileName;
+
         return (
           <div className="entry-content">
-            <h3 className="entry-title">{metadata.fileName}</h3>
+            <h3 className="entry-title">{fileTitle}</h3>
+            {metadata.files && metadata.files.length > 0 && (
+              <div className="entry-metadata" style={{ marginBottom: '0.5rem' }}>
+                {metadata.files.map((file, idx) => (
+                  <div key={idx} className="metadata-item" style={{ fontSize: '0.9rem', color: '#7f8c8d' }}>
+                    {file.fileName}
+                  </div>
+                ))}
+              </div>
+            )}
             {metadata.description && (
               <>
                 {(() => {
