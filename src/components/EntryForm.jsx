@@ -490,7 +490,7 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
       </div>
 
       <div className="form-group">
-        <label>Title (Optional)</label>
+        <label>Title</label>
         <input
           type="text"
           value={customTitle}
