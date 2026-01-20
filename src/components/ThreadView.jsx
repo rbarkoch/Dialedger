@@ -71,19 +71,21 @@ function ThreadView({ thread, onThreadUpdated, highlightedEntryId }) {
         
         // Mark this as the new entry for animation
         setNewEntryId(entry.id);
-        
-        // If there's a selected file attachment, save it before reloading
-        if (entryData.selectedFile && entryData.entryType === 'file') {
-          console.log('Saving attachment for entry ID:', entry.id);
-          const savedAttachment = await api.saveAttachment({
-            filePath: entryData.selectedFile.path,
-            fileName: entryData.selectedFile.name,
-            file: entryData.selectedFile.file, // For web upload
-            entryId: entry.id,
-          });
-          console.log('Attachment saved successfully:', savedAttachment);
+
+        // If there are selected file attachments, save them before reloading
+        if (entryData.selectedFiles && entryData.selectedFiles.length > 0 && entryData.entryType === 'file') {
+          console.log('Saving attachments for entry ID:', entry.id);
+          for (const file of entryData.selectedFiles) {
+            const savedAttachment = await api.saveAttachment({
+              filePath: file.path,
+              fileName: file.name,
+              file: file.file, // For web upload
+              entryId: entry.id,
+            });
+            console.log('Attachment saved successfully:', savedAttachment);
+          }
         }
-        
+
         // Clear the animation after 1s (animation duration)
         setTimeout(() => setNewEntryId(null), 1000);
       }

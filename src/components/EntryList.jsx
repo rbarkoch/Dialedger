@@ -249,7 +249,6 @@ function EntryList({ entries, onDeleteEntry, onEditEntry, onToggleActionItem, on
       case 'file':
         return (
           <div className="entry-content">
-            <h3 className="entry-title">{metadata.fileName}</h3>
             {metadata.description && (
               <>
                 {(() => {
