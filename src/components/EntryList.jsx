@@ -65,8 +65,11 @@ function FileAttachmentDisplay({ entryId }) {
   );
 }
 
-function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId, highlightedEntryId }) {
+function EntryList({ entries, onDeleteEntry, onEditEntry, onToggleActionItem, onReorderActionItems, onUpdateActionItemText, newEntryId, highlightedEntryId }) {
   const [expandedEntries, setExpandedEntries] = useState(new Set());
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
+  const [editingText, setEditingText] = useState('');
 
   const toggleExpanded = (entryId) => {
     setExpandedEntries(prev => {
@@ -103,6 +106,7 @@ function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId, highlighte
       conversation: 'Conversation',
       email: 'E-Mail',
       file: 'File Attachment',
+      action_items: 'Action Items',
     };
     return labels[type] || type;
   };
@@ -265,6 +269,132 @@ function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId, highlighte
               </>
             )}
             <FileAttachmentDisplay key={`attachment-${entry.id}`} entryId={entry.id} />
+          </div>
+        );
+
+      case 'action_items':
+        return (
+          <div className="entry-content">
+            {metadata.description && (
+              <div className="entry-text markdown-content" style={{ marginBottom: '1rem' }}>
+                <ReactMarkdown>{metadata.description}</ReactMarkdown>
+              </div>
+            )}
+            {metadata.items && metadata.items.length > 0 && (
+              <div className="action-items-list" style={{ marginTop: '0.5rem' }}>
+                {metadata.items.map((item, index) => {
+                  const isEditing = editingItem?.entryId === entry.id && editingItem?.index === index;
+                  const isDragging = draggedItem?.entryId === entry.id && draggedItem?.index === index;
+                  return (
+                    <div
+                      key={index}
+                      draggable={!isEditing}
+                      onDragStart={(e) => {
+                        if (isEditing) return;
+                        setDraggedItem({ entryId: entry.id, index });
+                        e.dataTransfer.effectAllowed = 'move';
+                      }}
+                      onDragEnd={() => setDraggedItem(null)}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (draggedItem && draggedItem.entryId === entry.id && draggedItem.index !== index) {
+                          onReorderActionItems && onReorderActionItems(entry.id, draggedItem.index, index);
+                        }
+                        setDraggedItem(null);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '0.5rem',
+                        padding: '0.5rem 0',
+                        borderBottom: index < metadata.items.length - 1 ? '1px solid #ecf0f1' : 'none',
+                        cursor: isEditing ? 'default' : 'grab',
+                        backgroundColor: isDragging ? '#f0f0f0' : 'transparent',
+                        opacity: isDragging ? 0.5 : 1,
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: '#bdc3c7',
+                          cursor: 'grab',
+                          userSelect: 'none',
+                        }}
+                        title="Drag to reorder"
+                      >
+                        ⋮⋮
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={item.completed}
+                        onChange={() => onToggleActionItem && onToggleActionItem(entry.id, index)}
+                        style={{
+                          marginTop: '0.25rem',
+                          cursor: 'pointer',
+                        }}
+                      />
+                      {isEditing ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                if (editingText.trim() && onUpdateActionItemText) {
+                                  onUpdateActionItemText(entry.id, index, editingText.trim());
+                                }
+                                setEditingItem(null);
+                                setEditingText('');
+                              } else if (e.key === 'Escape') {
+                                setEditingItem(null);
+                                setEditingText('');
+                              }
+                            }}
+                            onBlur={() => {
+                              if (editingText.trim() && onUpdateActionItemText) {
+                                onUpdateActionItemText(entry.id, index, editingText.trim());
+                              }
+                              setEditingItem(null);
+                              setEditingText('');
+                            }}
+                            autoFocus
+                            style={{
+                              flex: 1,
+                              padding: '0.25rem 0.5rem',
+                              border: '1px solid #3498db',
+                              borderRadius: '4px',
+                              outline: 'none',
+                              fontSize: 'inherit',
+                            }}
+                          />
+                        </>
+                      ) : (
+                        <span
+                          onClick={() => {
+                            setEditingItem({ entryId: entry.id, index });
+                            setEditingText(item.text);
+                          }}
+                          style={{
+                            flex: 1,
+                            textDecoration: item.completed ? 'line-through' : 'none',
+                            color: item.completed ? '#95a5a6' : '#2c3e50',
+                            cursor: 'text',
+                          }}
+                          title="Click to edit"
+                        >
+                          {item.text}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
 

@@ -31,7 +31,7 @@ function initialize(dataPath) {
     CREATE TABLE IF NOT EXISTS entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       thread_id INTEGER NOT NULL,
-      entry_type TEXT NOT NULL CHECK(entry_type IN ('note', 'meeting', 'conversation', 'email', 'file')),
+      entry_type TEXT NOT NULL CHECK(entry_type IN ('note', 'meeting', 'conversation', 'email', 'file', 'action_items')),
       title TEXT,
       content TEXT,
       entry_date DATETIME NOT NULL,
@@ -60,7 +60,7 @@ function initialize(dataPath) {
   try {
     const columns = db.pragma('table_info(threads)');
     const hasDisplayOrder = columns.some(col => col.name === 'display_order');
-    
+
     if (!hasDisplayOrder) {
       db.exec('ALTER TABLE threads ADD COLUMN display_order INTEGER DEFAULT 0');
       db.exec('UPDATE threads SET display_order = id WHERE display_order = 0');
@@ -68,6 +68,49 @@ function initialize(dataPath) {
     }
   } catch (error) {
     console.error('Migration error:', error);
+  }
+
+  // Migration: Update entries table to include 'action_items' in CHECK constraint
+  try {
+    // Check if the table needs migration by checking the table schema
+    const testStmt = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='entries'");
+    const tableInfo = testStmt.get();
+
+    if (tableInfo && tableInfo.sql && !tableInfo.sql.includes("'action_items'")) {
+      console.log('Migrating entries table to add action_items entry type...');
+
+      db.exec(`
+        -- Create new table with updated constraint
+        CREATE TABLE entries_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          thread_id INTEGER NOT NULL,
+          entry_type TEXT NOT NULL CHECK(entry_type IN ('note', 'meeting', 'conversation', 'email', 'file', 'action_items')),
+          title TEXT,
+          content TEXT,
+          entry_date DATETIME NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          metadata TEXT,
+          FOREIGN KEY (thread_id) REFERENCES threads(id) ON DELETE CASCADE
+        );
+
+        -- Copy data from old table
+        INSERT INTO entries_new SELECT * FROM entries;
+
+        -- Drop old table
+        DROP TABLE entries;
+
+        -- Rename new table
+        ALTER TABLE entries_new RENAME TO entries;
+
+        -- Recreate indexes
+        CREATE INDEX IF NOT EXISTS idx_entries_thread_id ON entries(thread_id);
+        CREATE INDEX IF NOT EXISTS idx_entries_entry_date ON entries(entry_date);
+      `);
+
+      console.log('Successfully migrated entries table to include action_items');
+    }
+  } catch (error) {
+    console.error('Migration error for action_items:', error);
   }
   
   console.log('Database initialized at:', dbPath);
@@ -144,13 +187,36 @@ function createEntry(data) {
 }
 
 function updateEntry(data) {
-  const stmt = db.prepare(`
-    UPDATE entries 
-    SET title = ?, content = ?, entry_date = ?, metadata = ?
-    WHERE id = ?
-  `);
-  const metadataString = data.metadata ? JSON.stringify(data.metadata) : null;
-  stmt.run(data.title, data.content, data.entryDate, metadataString, data.id);
+  // Build dynamic UPDATE query based on provided fields
+  const updates = [];
+  const values = [];
+  
+  if (data.title !== undefined) {
+    updates.push('title = ?');
+    values.push(data.title);
+  }
+  if (data.content !== undefined) {
+    updates.push('content = ?');
+    values.push(data.content);
+  }
+  if (data.entryDate !== undefined) {
+    updates.push('entry_date = ?');
+    values.push(data.entryDate);
+  }
+  if (data.metadata !== undefined) {
+    updates.push('metadata = ?');
+    // metadata may already be a string or an object
+    const metadataString = typeof data.metadata === 'string' ? data.metadata : JSON.stringify(data.metadata);
+    values.push(metadataString);
+  }
+  
+  if (updates.length === 0) {
+    return data; // Nothing to update
+  }
+  
+  values.push(data.id);
+  const stmt = db.prepare(`UPDATE entries SET ${updates.join(', ')} WHERE id = ?`);
+  stmt.run(...values);
   
   const entry = db.prepare('SELECT thread_id FROM entries WHERE id = ?').get(data.id);
   if (entry) {
@@ -158,7 +224,7 @@ function updateEntry(data) {
     updateStmt.run(entry.thread_id);
   }
   
-  return { ...data, metadata: metadataString };
+  return data;
 }
 
 function deleteEntry(id) {
