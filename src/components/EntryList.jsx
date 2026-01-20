@@ -103,6 +103,7 @@ function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId, highlighte
       conversation: 'Conversation',
       email: 'E-Mail',
       file: 'File Attachment',
+      action_items: 'Action Items',
     };
     return labels[type] || type;
   };
@@ -266,6 +267,52 @@ function EntryList({ entries, onDeleteEntry, onEditEntry, newEntryId, highlighte
               </>
             )}
             <FileAttachmentDisplay key={`attachment-${entry.id}`} entryId={entry.id} />
+          </div>
+        );
+
+      case 'action_items':
+        return (
+          <div className="entry-content">
+            {metadata.description && (
+              <div className="entry-text markdown-content" style={{ marginBottom: '1rem' }}>
+                <ReactMarkdown>{metadata.description}</ReactMarkdown>
+              </div>
+            )}
+            {metadata.items && metadata.items.length > 0 && (
+              <div className="action-items-list" style={{ marginTop: '0.5rem' }}>
+                {metadata.items.map((item, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '0.5rem',
+                      padding: '0.5rem 0',
+                      borderBottom: index < metadata.items.length - 1 ? '1px solid #ecf0f1' : 'none',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={item.completed}
+                      readOnly
+                      style={{
+                        marginTop: '0.25rem',
+                        cursor: 'default',
+                      }}
+                    />
+                    <span
+                      style={{
+                        flex: 1,
+                        textDecoration: item.completed ? 'line-through' : 'none',
+                        color: item.completed ? '#95a5a6' : '#2c3e50',
+                      }}
+                    >
+                      {item.text}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         );
 

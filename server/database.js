@@ -31,7 +31,7 @@ function initialize(dataPath) {
     CREATE TABLE IF NOT EXISTS entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       thread_id INTEGER NOT NULL,
-      entry_type TEXT NOT NULL CHECK(entry_type IN ('note', 'meeting', 'conversation', 'email', 'file')),
+      entry_type TEXT NOT NULL CHECK(entry_type IN ('note', 'meeting', 'conversation', 'email', 'file', 'action_items')),
       title TEXT,
       content TEXT,
       entry_date DATETIME NOT NULL,
