@@ -187,13 +187,36 @@ function createEntry(data) {
 }
 
 function updateEntry(data) {
-  const stmt = db.prepare(`
-    UPDATE entries 
-    SET title = ?, content = ?, entry_date = ?, metadata = ?
-    WHERE id = ?
-  `);
-  const metadataString = data.metadata ? JSON.stringify(data.metadata) : null;
-  stmt.run(data.title, data.content, data.entryDate, metadataString, data.id);
+  // Build dynamic UPDATE query based on provided fields
+  const updates = [];
+  const values = [];
+  
+  if (data.title !== undefined) {
+    updates.push('title = ?');
+    values.push(data.title);
+  }
+  if (data.content !== undefined) {
+    updates.push('content = ?');
+    values.push(data.content);
+  }
+  if (data.entryDate !== undefined) {
+    updates.push('entry_date = ?');
+    values.push(data.entryDate);
+  }
+  if (data.metadata !== undefined) {
+    updates.push('metadata = ?');
+    // metadata may already be a string or an object
+    const metadataString = typeof data.metadata === 'string' ? data.metadata : JSON.stringify(data.metadata);
+    values.push(metadataString);
+  }
+  
+  if (updates.length === 0) {
+    return data; // Nothing to update
+  }
+  
+  values.push(data.id);
+  const stmt = db.prepare(`UPDATE entries SET ${updates.join(', ')} WHERE id = ?`);
+  stmt.run(...values);
   
   const entry = db.prepare('SELECT thread_id FROM entries WHERE id = ?').get(data.id);
   if (entry) {
@@ -201,7 +224,7 @@ function updateEntry(data) {
     updateStmt.run(entry.thread_id);
   }
   
-  return { ...data, metadata: metadataString };
+  return data;
 }
 
 function deleteEntry(id) {

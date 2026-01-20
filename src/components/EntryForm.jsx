@@ -15,6 +15,9 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
   const isEditMode = editEntry !== null;
   
   const [entryType, setEntryType] = useState(editEntry?.entry_type || 'note');
+  const [draggedItemIndex, setDraggedItemIndex] = useState(null);
+  const [editingItemIndex, setEditingItemIndex] = useState(null);
+  const [editingItemText, setEditingItemText] = useState('');
   
   // Get current date/time in local timezone for datetime-local input
   const getCurrentDateTime = () => {
@@ -123,6 +126,33 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
     setActionItems(actionItems.map((item, i) =>
       i === index ? { ...item, completed: !item.completed } : item
     ));
+  };
+
+  const handleReorderActionItem = (fromIndex, toIndex) => {
+    const items = [...actionItems];
+    const [movedItem] = items.splice(fromIndex, 1);
+    items.splice(toIndex, 0, movedItem);
+    setActionItems(items);
+  };
+
+  const handleStartEditItem = (index) => {
+    setEditingItemIndex(index);
+    setEditingItemText(actionItems[index].text);
+  };
+
+  const handleSaveEditItem = () => {
+    if (editingItemIndex !== null && editingItemText.trim()) {
+      setActionItems(actionItems.map((item, i) =>
+        i === editingItemIndex ? { ...item, text: editingItemText.trim() } : item
+      ));
+    }
+    setEditingItemIndex(null);
+    setEditingItemText('');
+  };
+
+  const handleCancelEditItem = () => {
+    setEditingItemIndex(null);
+    setEditingItemText('');
   };
 
   const handleSubmit = (e) => {
@@ -542,46 +572,130 @@ function EntryForm({ onSubmit, onCancel, editEntry = null }) {
                   {actionItems.map((item, index) => (
                     <div
                       key={index}
+                      draggable={editingItemIndex !== index}
+                      onDragStart={() => setDraggedItemIndex(index)}
+                      onDragEnd={() => setDraggedItemIndex(null)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (draggedItemIndex !== null && draggedItemIndex !== index) {
+                          handleReorderActionItem(draggedItemIndex, index);
+                        }
+                        setDraggedItemIndex(null);
+                      }}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: '0.5rem',
                         padding: '0.5rem',
-                        backgroundColor: '#f8f9fa',
+                        backgroundColor: draggedItemIndex === index ? '#e8f4fc' : '#f8f9fa',
                         borderRadius: '4px',
                         marginBottom: '0.5rem',
+                        opacity: draggedItemIndex === index ? 0.5 : 1,
+                        cursor: editingItemIndex !== index ? 'grab' : 'default',
                       }}
                     >
+                      <span
+                        style={{
+                          color: '#bdc3c7',
+                          cursor: 'grab',
+                          userSelect: 'none',
+                        }}
+                        title="Drag to reorder"
+                      >
+                        ⁝⁝
+                      </span>
                       <input
                         type="checkbox"
                         checked={item.completed}
                         onChange={() => handleToggleActionItem(index)}
                         style={{ cursor: 'pointer' }}
                       />
-                      <span
-                        style={{
-                          flex: 1,
-                          textDecoration: item.completed ? 'line-through' : 'none',
-                          color: item.completed ? '#95a5a6' : '#2c3e50',
-                        }}
-                      >
-                        {item.text}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveActionItem(index)}
-                        style={{
-                          padding: '0.25rem 0.5rem',
-                          backgroundColor: '#e74c3c',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '0.85rem',
-                        }}
-                      >
-                        Remove
-                      </button>
+                      {editingItemIndex === index ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editingItemText}
+                            onChange={(e) => setEditingItemText(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleSaveEditItem();
+                              } else if (e.key === 'Escape') {
+                                handleCancelEditItem();
+                              }
+                            }}
+                            autoFocus
+                            style={{
+                              flex: 1,
+                              padding: '0.25rem 0.5rem',
+                              border: '1px solid #3498db',
+                              borderRadius: '4px',
+                              outline: 'none',
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleSaveEditItem}
+                            style={{
+                              padding: '0.25rem 0.5rem',
+                              backgroundColor: '#27ae60',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '0.85rem',
+                            }}
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCancelEditItem}
+                            style={{
+                              padding: '0.25rem 0.5rem',
+                              backgroundColor: '#95a5a6',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '0.85rem',
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <span
+                            onClick={() => handleStartEditItem(index)}
+                            style={{
+                              flex: 1,
+                              textDecoration: item.completed ? 'line-through' : 'none',
+                              color: item.completed ? '#95a5a6' : '#2c3e50',
+                              cursor: 'text',
+                            }}
+                            title="Click to edit"
+                          >
+                            {item.text}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveActionItem(index)}
+                            style={{
+                              padding: '0.25rem 0.5rem',
+                              backgroundColor: '#e74c3c',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '0.85rem',
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>

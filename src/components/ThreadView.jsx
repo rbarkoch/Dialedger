@@ -118,10 +118,88 @@ function ThreadView({ thread, onThreadUpdated, highlightedEntryId }) {
     }
   };
 
+  const handleToggleActionItem = async (entryId, itemIndex) => {
+    try {
+      const entry = entries.find(e => e.id === entryId);
+      if (!entry) return;
+      
+      const metadata = entry.metadata ? JSON.parse(entry.metadata) : {};
+      if (!metadata.items || !metadata.items[itemIndex]) return;
+      
+      // Toggle the completed status
+      metadata.items[itemIndex].completed = !metadata.items[itemIndex].completed;
+      
+      // Update the entry
+      await api.updateEntry({
+        id: entryId,
+        metadata: JSON.stringify(metadata),
+      });
+      
+      // Reload entries to reflect the change
+      await loadEntries();
+    } catch (error) {
+      console.error('Failed to toggle action item:', error);
+    }
+  };
+
+  const handleReorderActionItems = async (entryId, fromIndex, toIndex) => {
+    try {
+      const entry = entries.find(e => e.id === entryId);
+      if (!entry) return;
+      
+      const metadata = entry.metadata ? JSON.parse(entry.metadata) : {};
+      if (!metadata.items || metadata.items.length < 2) return;
+      
+      // Reorder the items
+      const items = [...metadata.items];
+      const [movedItem] = items.splice(fromIndex, 1);
+      items.splice(toIndex, 0, movedItem);
+      metadata.items = items;
+      
+      // Update the entry
+      await api.updateEntry({
+        id: entryId,
+        metadata: JSON.stringify(metadata),
+      });
+      
+      // Reload entries to reflect the change
+      await loadEntries();
+    } catch (error) {
+      console.error('Failed to reorder action items:', error);
+    }
+  };
+
+  const handleUpdateActionItemText = async (entryId, itemIndex, newText) => {
+    try {
+      const entry = entries.find(e => e.id === entryId);
+      if (!entry) return;
+      
+      const metadata = entry.metadata ? JSON.parse(entry.metadata) : {};
+      if (!metadata.items || !metadata.items[itemIndex]) return;
+      
+      // Update the text
+      metadata.items[itemIndex].text = newText;
+      
+      // Update the entry
+      await api.updateEntry({
+        id: entryId,
+        metadata: JSON.stringify(metadata),
+      });
+      
+      // Reload entries to reflect the change
+      await loadEntries();
+    } catch (error) {
+      console.error('Failed to update action item text:', error);
+    }
+  };
+
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(true);
+    // Only show drag overlay if there are files being dragged
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDragging(true);
+    }
   };
 
   const handleDragLeave = (e) => {
@@ -262,6 +340,9 @@ function ThreadView({ thread, onThreadUpdated, highlightedEntryId }) {
             entries={entries}
             onDeleteEntry={handleDeleteEntry}
             onEditEntry={handleEditEntry}
+            onToggleActionItem={handleToggleActionItem}
+            onReorderActionItems={handleReorderActionItems}
+            onUpdateActionItemText={handleUpdateActionItemText}
             newEntryId={newEntryId}
             highlightedEntryId={highlightedEntryId}
           />
