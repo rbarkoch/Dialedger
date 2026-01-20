@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import EntryList from './EntryList';
 import EntryForm from './EntryForm';
+import EntrySidebar from './EntrySidebar';
 import api, { isElectron } from '../api';
 import './ThreadView.css';
 
@@ -334,21 +335,24 @@ function ThreadView({ thread, onThreadUpdated, highlightedEntryId }) {
         />
       )}
 
-      <div className="thread-view-content" ref={contentRef}>
-        {loading ? (
-          <div className="loading-entries">Loading entries...</div>
-        ) : (
-          <EntryList
-            entries={entries}
-            onDeleteEntry={handleDeleteEntry}
-            onEditEntry={handleEditEntry}
-            onToggleActionItem={handleToggleActionItem}
-            onReorderActionItems={handleReorderActionItems}
-            onUpdateActionItemText={handleUpdateActionItemText}
-            newEntryId={newEntryId}
-            highlightedEntryId={highlightedEntryId}
-          />
-        )}
+      <div className="thread-view-main">
+        <div className="thread-view-content" ref={contentRef}>
+          {loading ? (
+            <div className="loading-entries">Loading entries...</div>
+          ) : (
+            <EntryList
+              entries={entries}
+              onDeleteEntry={handleDeleteEntry}
+              onEditEntry={handleEditEntry}
+              onToggleActionItem={handleToggleActionItem}
+              onReorderActionItems={handleReorderActionItems}
+              onUpdateActionItemText={handleUpdateActionItemText}
+              newEntryId={newEntryId}
+              highlightedEntryId={highlightedEntryId}
+            />
+          )}
+        </div>
+        <EntrySidebar entries={entries} />
       </div>
     </div>
   );

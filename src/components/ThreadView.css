@@ -96,6 +96,12 @@
   box-shadow: 0 3px 6px rgba(52, 152, 219, 0.3);
 }
 
+.thread-view-main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
 .thread-view-content {
   flex: 1;
   overflow-y: auto;
