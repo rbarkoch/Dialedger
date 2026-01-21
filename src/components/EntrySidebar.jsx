@@ -1,12 +1,82 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import Icon from './icons/Icon';
+import api from '../api';
 import './EntrySidebar.css';
 
-const EntrySidebar = ({ entries }) => {
+// File item component that loads and displays attachments
+const FileItem = ({ entryId, entryTitle, entryDate, onEntryClick, formatDate }) => {
+  const [attachments, setAttachments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadAttachments();
+  }, [entryId]);
+
+  const loadAttachments = async () => {
+    try {
+      const result = await api.getAttachmentsByEntry({ entryId });
+      setAttachments(result);
+    } catch (error) {
+      console.error('Failed to load attachments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownloadAttachment = async (attachmentId, fileName, e) => {
+    e.stopPropagation(); // Prevent navigation when clicking download
+    try {
+      await api.downloadAttachment({ attachmentId, fileName });
+    } catch (error) {
+      console.error('Failed to download attachment:', error);
+      alert('Failed to download file. The file may have been moved or deleted.');
+    }
+  };
+
+  if (loading) {
+    return null;
+  }
+
+  if (attachments.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      {attachments.map((attachment) => (
+        <li
+          key={attachment.id}
+          className="sidebar-item sidebar-item-clickable"
+          onClick={() => onEntryClick(entryId)}
+          title="Click to view entry"
+        >
+          <div className="sidebar-item-text file-name">
+            <Icon name="file" size={14} className="file-icon" />
+            {attachment.file_name}
+            <button
+              className="btn-download-small"
+              onClick={(e) => handleDownloadAttachment(attachment.id, attachment.file_name, e)}
+              title="Download file"
+            >
+              ↓
+            </button>
+          </div>
+          <div className="sidebar-item-meta">
+            <span className="sidebar-item-source">{entryTitle}</span>
+            <span className="sidebar-item-date">{formatDate(entryDate)}</span>
+          </div>
+        </li>
+      ))}
+    </>
+  );
+};
+
+const EntrySidebar = ({ entries, onToggleActionItem, onEntryNavigate }) => {
   // Extract incomplete action items with their entry context
   const incompleteActionItems = [];
 
-  // Extract files with their entry context
-  const allFiles = [];
+  // Extract file entries
+  const fileEntries = [];
 
   // Process entries in order
   entries.forEach((entry) => {
@@ -38,17 +108,11 @@ const EntrySidebar = ({ entries }) => {
           ? JSON.parse(entry.metadata)
           : entry.metadata;
 
-        if (metadata.files && Array.isArray(metadata.files)) {
-          metadata.files.forEach((file) => {
-            allFiles.push({
-              entryId: entry.id,
-              entryTitle: entry.title || metadata.description || 'File',
-              entryDate: entry.entry_date,
-              fileName: file.fileName,
-              fileType: file.fileType
-            });
-          });
-        }
+        fileEntries.push({
+          entryId: entry.id,
+          entryTitle: entry.title || metadata.description || 'File',
+          entryDate: entry.entry_date
+        });
       } catch (e) {
         console.error('Error parsing file metadata:', e);
       }
@@ -60,12 +124,25 @@ const EntrySidebar = ({ entries }) => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  const handleActionItemClick = (entryId) => {
+    if (onEntryNavigate) {
+      onEntryNavigate(entryId);
+    }
+  };
+
+  const handleToggle = (entryId, itemIndex, e) => {
+    e.stopPropagation(); // Prevent navigation when toggling
+    if (onToggleActionItem) {
+      onToggleActionItem(entryId, itemIndex);
+    }
+  };
+
   return (
     <div className="entry-sidebar">
       {/* Action Items Section */}
       <div className="sidebar-section">
         <div className="sidebar-section-header">
-          <span className="sidebar-icon">☑️</span>
+          <Icon name="action_items" size={18} />
           <h3>Action Items</h3>
           <span className="sidebar-count">{incompleteActionItems.length}</span>
         </div>
@@ -76,8 +153,22 @@ const EntrySidebar = ({ entries }) => {
           ) : (
             <ul className="sidebar-list">
               {incompleteActionItems.map((item, idx) => (
-                <li key={`${item.entryId}-${item.itemIndex}`} className="sidebar-item">
-                  <div className="sidebar-item-text">{item.text}</div>
+                <li
+                  key={`${item.entryId}-${item.itemIndex}`}
+                  className="sidebar-item sidebar-item-clickable"
+                  onClick={() => handleActionItemClick(item.entryId)}
+                  title="Click to view entry"
+                >
+                  <div className="sidebar-item-action">
+                    <input
+                      type="checkbox"
+                      checked={false}
+                      onChange={(e) => handleToggle(item.entryId, item.itemIndex, e)}
+                      onClick={(e) => e.stopPropagation()}
+                      title="Mark as complete"
+                    />
+                    <div className="sidebar-item-text">{item.text}</div>
+                  </div>
                   <div className="sidebar-item-meta">
                     <span className="sidebar-item-source">{item.entryTitle}</span>
                     <span className="sidebar-item-date">{formatDate(item.entryDate)}</span>
@@ -92,27 +183,25 @@ const EntrySidebar = ({ entries }) => {
       {/* Files Section */}
       <div className="sidebar-section">
         <div className="sidebar-section-header">
-          <span className="sidebar-icon">📄</span>
+          <Icon name="file" size={18} />
           <h3>Files</h3>
-          <span className="sidebar-count">{allFiles.length}</span>
+          <span className="sidebar-count">{fileEntries.length}</span>
         </div>
 
         <div className="sidebar-section-content">
-          {allFiles.length === 0 ? (
+          {fileEntries.length === 0 ? (
             <div className="sidebar-empty">No files</div>
           ) : (
             <ul className="sidebar-list">
-              {allFiles.map((file, idx) => (
-                <li key={`${file.entryId}-${idx}`} className="sidebar-item">
-                  <div className="sidebar-item-text file-name">
-                    <span className="file-icon">📎</span>
-                    {file.fileName}
-                  </div>
-                  <div className="sidebar-item-meta">
-                    <span className="sidebar-item-source">{file.entryTitle}</span>
-                    <span className="sidebar-item-date">{formatDate(file.entryDate)}</span>
-                  </div>
-                </li>
+              {fileEntries.map((fileEntry) => (
+                <FileItem
+                  key={fileEntry.entryId}
+                  entryId={fileEntry.entryId}
+                  entryTitle={fileEntry.entryTitle}
+                  entryDate={fileEntry.entryDate}
+                  onEntryClick={onEntryNavigate}
+                  formatDate={formatDate}
+                />
               ))}
             </ul>
           )}

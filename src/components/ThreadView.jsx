@@ -352,7 +352,16 @@ function ThreadView({ thread, onThreadUpdated, highlightedEntryId }) {
             />
           )}
         </div>
-        <EntrySidebar entries={entries} />
+        <EntrySidebar
+          entries={entries}
+          onToggleActionItem={handleToggleActionItem}
+          onEntryNavigate={(entryId) => {
+            const entryElement = document.getElementById(`entry-${entryId}`);
+            if (entryElement) {
+              entryElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }}
+        />
       </div>
     </div>
   );

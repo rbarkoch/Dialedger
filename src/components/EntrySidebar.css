@@ -39,8 +39,8 @@
   flex: 1;
 }
 
-.sidebar-icon {
-  font-size: 18px;
+.sidebar-section-header svg {
+  color: #6c757d;
 }
 
 .sidebar-count {
@@ -69,12 +69,29 @@
   transition: background-color 0.15s ease;
 }
 
-.sidebar-item:hover {
-  background-color: #f8f9fa;
+.sidebar-item-clickable {
+  cursor: pointer;
+}
+
+.sidebar-item-clickable:hover {
+  background-color: #e8f4f8;
 }
 
 .sidebar-item:last-child {
   border-bottom: none;
+}
+
+.sidebar-item-action {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.sidebar-item-action input[type="checkbox"] {
+  margin-top: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .sidebar-item-text {
@@ -91,11 +108,29 @@
   gap: 6px;
   color: #3498db;
   font-weight: 500;
+  flex: 1;
 }
 
 .file-icon {
   flex-shrink: 0;
-  font-size: 14px;
+}
+
+.btn-download-small {
+  margin-left: auto;
+  padding: 2px 8px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.btn-download-small:hover {
+  background-color: #2980b9;
 }
 
 .sidebar-item-meta {
