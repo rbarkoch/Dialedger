@@ -272,13 +272,22 @@ function search(query, options = {}) {
   results.threads = threadStmt.all(searchTerm, searchTerm);
 
   // Build entry search query with optional filters
+  // Also search attachment filenames via subquery
   let entryQuery = `
     SELECT e.*, t.title as thread_title
     FROM entries e
     JOIN threads t ON e.thread_id = t.id
-    WHERE (e.title LIKE ? OR e.content LIKE ? OR e.metadata LIKE ?)
+    WHERE (
+      e.title LIKE ? 
+      OR e.content LIKE ? 
+      OR e.metadata LIKE ?
+      OR EXISTS (
+        SELECT 1 FROM attachments a 
+        WHERE a.entry_id = e.id AND a.file_name LIKE ?
+      )
+    )
   `;
-  const params = [searchTerm, searchTerm, searchTerm];
+  const params = [searchTerm, searchTerm, searchTerm, searchTerm];
 
   // Filter by entry types if specified
   if (entryTypes && entryTypes.length > 0) {
@@ -296,7 +305,24 @@ function search(query, options = {}) {
   entryQuery += ' ORDER BY e.entry_date DESC';
 
   const entryStmt = db.prepare(entryQuery);
-  results.entries = entryStmt.all(...params);
+  const entries = entryStmt.all(...params);
+
+  // For each entry, check if it has matching attachments and include them
+  const attachmentStmt = db.prepare(`
+    SELECT file_name FROM attachments 
+    WHERE entry_id = ? AND file_name LIKE ?
+  `);
+  
+  results.entries = entries.map(entry => {
+    const matchingAttachments = attachmentStmt.all(entry.id, searchTerm);
+    if (matchingAttachments.length > 0) {
+      return {
+        ...entry,
+        matchingAttachments: matchingAttachments.map(a => a.file_name)
+      };
+    }
+    return entry;
+  });
 
   return results;
 }
