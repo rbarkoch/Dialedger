@@ -52,7 +52,7 @@ const FileItem = ({ entryId, entryTitle, entryDate, onEntryClick, formatDate }) 
         >
           <div className="sidebar-item-text file-name">
             <Icon name="file" size={14} className="file-icon" />
-            {attachment.file_name}
+            <span title={attachment.file_name}>{attachment.file_name}</span>
             <button
               className="btn-download-small"
               onClick={(e) => handleDownloadAttachment(attachment.id, attachment.file_name, e)}

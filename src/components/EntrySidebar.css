@@ -1,10 +1,13 @@
 .entry-sidebar {
   width: 280px;
+  min-width: 280px;
+  max-width: 280px;
   border-left: 1px solid #e8ecef;
   background-color: #ffffff;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   height: 100%;
 }
 
@@ -61,12 +64,16 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .sidebar-item {
   padding: 12px 16px;
   border-bottom: 1px solid #f0f0f0;
   transition: background-color 0.15s ease;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .sidebar-item-clickable {
@@ -86,12 +93,21 @@
   align-items: flex-start;
   gap: 8px;
   margin-bottom: 6px;
+  min-width: 0;
+  width: 100%;
 }
 
 .sidebar-item-action input[type="checkbox"] {
   margin-top: 2px;
   cursor: pointer;
   flex-shrink: 0;
+}
+
+.sidebar-item-action .sidebar-item-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .sidebar-item-text {
@@ -108,7 +124,17 @@
   gap: 6px;
   color: #3498db;
   font-weight: 500;
+  margin-bottom: 6px;
+  min-width: 0;
+  width: 100%;
+}
+
+.sidebar-item-text.file-name > span:not(.file-icon) {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .file-icon {
@@ -116,7 +142,6 @@
 }
 
 .btn-download-small {
-  margin-left: auto;
   padding: 2px 8px;
   background-color: #3498db;
   color: white;
@@ -140,10 +165,13 @@
   gap: 8px;
   font-size: 11px;
   color: #6c757d;
+  min-width: 0;
+  width: 100%;
 }
 
 .sidebar-item-source {
   flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -153,6 +181,7 @@
 .sidebar-item-date {
   flex-shrink: 0;
   color: #95a5a6;
+  white-space: nowrap;
 }
 
 .sidebar-empty {
