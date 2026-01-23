@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Icon from './icons/Icon';
 import api from '../api';
 import './EntrySidebar.css';
 
 // File item component that loads and displays attachments
-const FileItem = ({ entryId, entryTitle, entryDate, onEntryClick, formatDate }) => {
+const FileItem = ({ entryId, entryTitle, entryDate, onEntryClick, formatDate, onAttachmentsLoaded }) => {
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -16,8 +16,14 @@ const FileItem = ({ entryId, entryTitle, entryDate, onEntryClick, formatDate }) 
     try {
       const result = await api.getAttachmentsByEntry({ entryId });
       setAttachments(result);
+      if (onAttachmentsLoaded) {
+        onAttachmentsLoaded(result.length);
+      }
     } catch (error) {
       console.error('Failed to load attachments:', error);
+      if (onAttachmentsLoaded) {
+        onAttachmentsLoaded(0);
+      }
     } finally {
       setLoading(false);
     }
@@ -71,11 +77,68 @@ const FileItem = ({ entryId, entryTitle, entryDate, onEntryClick, formatDate }) 
   );
 };
 
-const EntrySidebar = ({ entries, onToggleActionItem, onEntryNavigate }) => {
+const EntrySidebar = ({ entries, onToggleActionItem, onEntryNavigate, width, onResize }) => {
+  const [fileCount, setFileCount] = useState(0);
+  const fileCountRef = useRef({});
+  const [isResizing, setIsResizing] = useState(false);
+  const sidebarRef = useRef(null);
+
+  const handleAttachmentsLoaded = (entryId, count) => {
+    fileCountRef.current[entryId] = count;
+    const totalCount = Object.values(fileCountRef.current).reduce((sum, c) => sum + c, 0);
+    setFileCount(totalCount);
+  };
+
+  // Reset file count when entries change
+  useEffect(() => {
+    fileCountRef.current = {};
+    setFileCount(0);
+  }, [entries]);
+
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    setIsResizing(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing || !sidebarRef.current) return;
+
+      const sidebar = sidebarRef.current;
+      const containerWidth = sidebar.parentElement.offsetWidth;
+      const newWidth = containerWidth - e.clientX + sidebar.parentElement.offsetLeft;
+
+      // Constrain width between 200px and 600px
+      const constrainedWidth = Math.min(Math.max(newWidth, 200), 600);
+
+      if (onResize) {
+        onResize(constrainedWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing, onResize]);
+
   // Extract incomplete action items with their entry context
   const incompleteActionItems = [];
 
-  // Extract file entries
+  // Extract all entries (FileItem component will filter entries with attachments)
   const fileEntries = [];
 
   // Process entries in order
@@ -102,20 +165,21 @@ const EntrySidebar = ({ entries, onToggleActionItem, onEntryNavigate }) => {
       } catch (e) {
         console.error('Error parsing action items metadata:', e);
       }
-    } else if (entry.entry_type === 'file') {
-      try {
-        const metadata = typeof entry.metadata === 'string'
-          ? JSON.parse(entry.metadata)
-          : entry.metadata;
+    }
 
-        fileEntries.push({
-          entryId: entry.id,
-          entryTitle: entry.title || metadata.description || 'File',
-          entryDate: entry.entry_date
-        });
-      } catch (e) {
-        console.error('Error parsing file metadata:', e);
-      }
+    // Show all entries - FileItem will only render if the entry has attachments
+    try {
+      const metadata = typeof entry.metadata === 'string'
+        ? JSON.parse(entry.metadata)
+        : entry.metadata || {};
+
+      fileEntries.push({
+        entryId: entry.id,
+        entryTitle: entry.title || metadata.description || metadata.fileName || 'File',
+        entryDate: entry.entry_date
+      });
+    } catch (e) {
+      console.error('Error parsing entry metadata:', e);
     }
   });
 
@@ -138,7 +202,19 @@ const EntrySidebar = ({ entries, onToggleActionItem, onEntryNavigate }) => {
   };
 
   return (
-    <div className="entry-sidebar">
+    <div
+      className="entry-sidebar"
+      ref={sidebarRef}
+      style={{
+        width: `${width}px`,
+        minWidth: `${width}px`,
+        maxWidth: `${width}px`
+      }}
+    >
+      <div
+        className="sidebar-resize-handle"
+        onMouseDown={handleMouseDown}
+      />
       {/* Action Items Section */}
       <div className="sidebar-section">
         <div className="sidebar-section-header">
@@ -185,11 +261,13 @@ const EntrySidebar = ({ entries, onToggleActionItem, onEntryNavigate }) => {
         <div className="sidebar-section-header">
           <Icon name="file" size={18} />
           <h3>Files</h3>
-          <span className="sidebar-count">{fileEntries.length}</span>
+          <span className="sidebar-count">{fileCount}</span>
         </div>
 
         <div className="sidebar-section-content">
-          {fileEntries.length === 0 ? (
+          {fileCount === 0 && fileEntries.length > 0 ? (
+            <div className="sidebar-empty">Loading files...</div>
+          ) : fileCount === 0 ? (
             <div className="sidebar-empty">No files</div>
           ) : (
             <ul className="sidebar-list">
@@ -201,6 +279,7 @@ const EntrySidebar = ({ entries, onToggleActionItem, onEntryNavigate }) => {
                   entryDate={fileEntry.entryDate}
                   onEntryClick={onEntryNavigate}
                   formatDate={formatDate}
+                  onAttachmentsLoaded={(count) => handleAttachmentsLoaded(fileEntry.entryId, count)}
                 />
               ))}
             </ul>

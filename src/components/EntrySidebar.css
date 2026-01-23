@@ -9,6 +9,27 @@
   overflow-y: auto;
   overflow-x: hidden;
   height: 100%;
+  position: relative;
+}
+
+.sidebar-resize-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  cursor: col-resize;
+  background-color: transparent;
+  z-index: 100;
+  transition: background-color 0.15s ease;
+}
+
+.sidebar-resize-handle:hover {
+  background-color: #3498db;
+}
+
+.sidebar-resize-handle:active {
+  background-color: #2980b9;
 }
 
 .sidebar-section {

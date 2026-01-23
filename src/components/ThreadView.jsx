@@ -13,6 +13,15 @@ function ThreadView({ thread, onThreadUpdated, highlightedEntryId }) {
   const [isDragging, setIsDragging] = useState(false);
   const [newEntryId, setNewEntryId] = useState(null);
   const contentRef = useRef(null);
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const saved = localStorage.getItem('sidebarWidth');
+    return saved ? parseInt(saved, 10) : 280;
+  });
+
+  const handleSidebarResize = (newWidth) => {
+    setSidebarWidth(newWidth);
+    localStorage.setItem('sidebarWidth', newWidth.toString());
+  };
 
   useEffect(() => {
     if (thread) {
@@ -361,6 +370,8 @@ function ThreadView({ thread, onThreadUpdated, highlightedEntryId }) {
               entryElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
           }}
+          width={sidebarWidth}
+          onResize={handleSidebarResize}
         />
       </div>
     </div>
