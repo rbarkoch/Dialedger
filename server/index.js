@@ -69,6 +69,17 @@ app.post('/api/threads', (req, res) => {
   }
 });
 
+// Thread order update - must be before :id route to avoid matching 'order' as an id
+app.put('/api/threads/order', (req, res) => {
+  try {
+    const result = db.updateThreadOrder(req.body.threadOrders);
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating thread order:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.put('/api/threads/:id', (req, res) => {
   try {
     const thread = db.updateThread({ ...req.body, id: parseInt(req.params.id) });
@@ -85,16 +96,6 @@ app.delete('/api/threads/:id', (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Error deleting thread:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.put('/api/threads/order', (req, res) => {
-  try {
-    const result = db.updateThreadOrder(req.body.threadOrders);
-    res.json(result);
-  } catch (error) {
-    console.error('Error updating thread order:', error);
     res.status(500).json({ error: error.message });
   }
 });
